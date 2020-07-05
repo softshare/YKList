@@ -1,27 +1,56 @@
 <template>
-  <div id="app">
-    <ListView msg="Welcome to Your Vue.js App"/>
-  </div>
+    <div id="app" style="width:800px;height:600px;background-color: rgba(44,62,80,0.2);">
+        <YKList msg="Welcome to Your Vue.js App" ref="ykList1"  :settings="settings" :listData="listData"/>
+    </div>
 </template>
 
 <script>
-import ListView from './components/ListView.vue'
+    import YKList from '@/components/YKList.vue'
 
-export default {
-  name: 'App',
-  components: {
-    ListView
-  }
-}
+    export default {
+        name: 'App',
+        components: {
+            YKList
+        },
+        data() {
+            return {
+                listData:[],
+                settings:{
+                    id: "ykList1",
+                    horizontal: true
+                }
+            }
+        },
+        methods: {
+            initTestData(){
+                var testtingArray=[];
+                for(var i=0;i<100;i++){
+                    testtingArray.push({
+                        index:i,
+                        name: "name"+i
+                    });
+                }
+                this.listData=testtingArray;
+                console.log("Testing Data Created.");
+            }
+        },
+        mounted() {
+            console.log("Sys Mounted.");
+            this.initTestData();
+            this.$refs.ykList1.test();
+            console.log(this.$refs.ykList1.list);
+
+        },
+    }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+    #app {
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: center;
+        color: #2c3e50;
+        margin-top: 60px;
+    }
 </style>

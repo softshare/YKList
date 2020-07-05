@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import ListView from './ListView.vue'
+import ListView from './YKList.vue'
 const Components = {
     ListView
 }
