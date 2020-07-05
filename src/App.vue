@@ -1,6 +1,10 @@
 <template>
-    <div id="app" style="width:800px;height:600px;background-color: rgba(44,62,80,0.2);">
-        <YKList msg="Welcome to Your Vue.js App" ref="ykList1"  :settings="settings" :listData="listData"/>
+    <div id="app" style="width:100%;height:800px;background-color: rgba(44,62,80,0.2);">
+        <YKList msg="Welcome to Your Vue.js App" ref="ykList1"  :settings="settings" :listData="listData">
+            <template v-slot:YKListItems="YKListItems">
+                {{ YKListItems.item.name }},
+            </template>
+        </YKList>
     </div>
 </template>
 
@@ -24,7 +28,7 @@
         methods: {
             initTestData(){
                 var testtingArray=[];
-                for(var i=0;i<100;i++){
+                for(var i=0;i<10000;i++){
                     testtingArray.push({
                         index:i,
                         name: "name"+i
@@ -39,7 +43,6 @@
             this.initTestData();
             this.$refs.ykList1.test();
             console.log(this.$refs.ykList1.list);
-
         },
     }
 </script>
@@ -52,5 +55,6 @@
         text-align: center;
         color: #2c3e50;
         margin-top: 60px;
+
     }
 </style>

@@ -1,13 +1,13 @@
 <template>
     <div
-            class="listMain"
+            class="YKList-listMain"
             ref="settings.id"
             tabindex="0"
             :id="settings.id"
             @scroll="onScroll"
             v-bind:class="[
-          { 'listMain-vert': settings.horizontal==false },
-          { 'listMain-hori': settings.horizontal==true },
+          { 'YKList-listMain-vert': settings.horizontal==false },
+          { 'YKList-listMain-hori': settings.horizontal==true },
         ]"
     >
         <div v-bind:style="styleInnerScroll"></div>
@@ -17,8 +17,9 @@
                      style="height: 100%;float:left;clear:none;"
                      :style="{width:itemSize_width+'px'}"
                 >
-                    <div v-for="(item2, index2) in item.data"  :key='index2' class="wh-file-list-item" v-bind:style="styleItem">
-                        {{item2.name}}
+                    <div v-for="(item2, index2) in item.data"  :key='index2' class="YKList-list-item" v-bind:style="styleItem">
+                        <slot name="YKListItems" v-bind:item="item2">
+                        </slot>
                     </div>
                 </div>
             </template>
@@ -27,16 +28,22 @@
             <div
                     v-for="(item, index) in splitData"
                     :key="index"
-                    class="wh-file-list-item"
+                    class="YKList-list-item"
                     v-bind:style="styleItem"
             >
-                {{item.name}}
+                <slot name="YKListItems" v-bind:item="item">
+                </slot>
             </div>
             </template>
         </div>
     </div>
 </template>
 <script>
+    import HelperDragSelect from "@/helpers/HelperDragSelect";
+
+    var elementResizeDetectorMaker = require("element-resize-detector");
+    var erd = elementResizeDetectorMaker();
+
     export default {
         data() {
             return {
@@ -169,11 +176,6 @@
                     width: this.itemSize_width + 'px',
                     height: this.itemSize_height + 'px',
                 };
-                // if (this.horizontal) {
-                //     style.float="top";
-                // }else{
-                //     style.float="left";
-                // }
                 return style;
             },
             vcols_getArray () { //获取当前虚拟滚动区域，要显示的列范围
@@ -184,7 +186,7 @@
             setListData(list) {//设置列表数据
                 this.list = list;
             },
-            reloadTotalRowsCols() {//计算行、列的数量；垂直、水平的列表，计算方式不同
+            reCalcTotalRowsCols() {//计算行、列的数量；垂直、水平的列表，计算方式不同
                 var element = document.getElementById(this.settings.id);
                 var width = element.offsetWidth;
                 var height = element.offsetHeight;
@@ -229,6 +231,25 @@
                         this.total_cols; //当前是第几个item，而不是第几行
                 }
             },
+            onLayoutResized(){
+                this.reCalcTotalRowsCols();
+            },
+            on_dragSelect_mouseDown(event){
+                if (event.shiftKey || event.ctrlKey) return; //如果此时用户按下了shift或者ctrl，可能是在进行鼠标选择，不能处理拖拽
+                // var vmobj = this;
+                HelperDragSelect.Helper.doMouseDown(event, this.settings.id);
+            },
+            on_dragSelect_mouseMove(event){
+                //var vmobj = this;
+                HelperDragSelect.Helper.doMouseMove(event, function(e) {
+                    //vmobj.listView_check_selectRect2(); //进行框选检查
+                    //todo
+                    console.log(e);
+                });
+            },
+            on_dragSelect_mouseUp(event){
+                HelperDragSelect.Helper.cancel(event);
+            },
             test() {
                 console.log("this is YKList Component.");
             },
@@ -247,21 +268,28 @@
         watch: {
             listData: function (newList) {
                 this.list = newList;
-                this.reloadTotalRowsCols();
+                this.reCalcTotalRowsCols();
                 console.log(newList);
             },
             settings: function () {
                 this.settingsCheck();
-                this.reloadTotalRowsCols();
+                this.reCalcTotalRowsCols();
             },
         },
         created() {
             this.settingsCheck();
         },
+        mounted() {
+            var vmobj = this; //开始监听div缩放事件
+            erd.listenTo(document.getElementById(vmobj.settings.id), function() {
+                vmobj.onLayoutResized();
+            });
+            HelperDragSelect.Helper.init(this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
+        },
     }
 </script>
-<style scoped>
-    .listMain {
+<style>
+    .YKList-listMain {
         height: 100%;
         width: 100%;
         background-color: antiquewhite;
@@ -272,17 +300,17 @@
         outline: none;
     }
 
-    .listMain-vert {
+    .YKList-listMain-vert {
         overflow-y: scroll;
         overflow-x: hidden;
     }
 
-    .listMain-hori {
+    .YKList-listMain-hori {
         overflow-x: scroll;
         overflow-y: hidden;
     }
 
-    .wh-file-list-item {
+    .YKList-list-item {
         padding: 0px;
         background-color: white;
         text-align: center;
@@ -292,7 +320,10 @@
         float:left;
     }
 
-    a {
-        color: black;
+    /*拖拽选择框的背景样式*/
+    #YKList-dragselect-rect {
+        background: rgba(72, 179, 255, 0.44);
+        z-index: 99;
     }
+
 </style>
