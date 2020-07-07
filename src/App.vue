@@ -2,7 +2,9 @@
     <div id="app" style="width:100%;height:800px;background-color: rgba(44,62,80,0.2);">
         <YKList msg="Welcome to Your Vue.js App" ref="ykList1"  :settings="settings" :listData="listData">
             <template v-slot:YKListItems="YKListItems">
+                <div  onselectstart="return false;" >
                 {{ YKListItems.item.name }},
+                </div>
             </template>
         </YKList>
     </div>
@@ -21,14 +23,20 @@
                 listData:[],
                 settings:{
                     id: "ykList1",
-                    horizontal: true
+                    custom_afterMouseDown: function (event, posInYKList) {
+                        console.log(posInYKList)
+                    },
+                    // custom_beforeMouseDown:function(){
+                    //     return false;
+                    // },
+                    // horizontal: true
                 }
             }
         },
         methods: {
             initTestData(){
-                var testtingArray=[];
-                for(var i=0;i<10000;i++){
+                let testtingArray=[];
+                for(let i=0;i<10000;i++){
                     testtingArray.push({
                         index:i,
                         name: "name"+i
