@@ -98,22 +98,23 @@
 				};
 
 				let iTopRowOffset = this.getTopOffset(YKList);
-
 				for (let i = iStart; i <= iStop; i++) {
 					//判断当前屏幕内，是否有新的item被选中
-					let isSelection = this.isItemInRect(
+					let inRect = this.isItemInRect(
 							YKList,
 							i,
 							iTopRowOffset,
 							r1
 					);
-					console.log(isSelection)
 					//获取矩形选择信息
-					if (isSelection) {
+					if (inRect) {
 						//如果在矩形范围内：
-						let coord = this.getItemCoord(i);
-						// if (this.GLOBAL.dragSelection.rectSelection_beginPos == undefined)
-						// 	this.GLOBAL.dragSelection.rectSelection_beginPos = pos; //关键！！第一次选择的起点
+						let coord = this.getItemCoord(YKList, i);
+
+						//关键！！第一次选择的item起点，必须从这里计算获得，不能在mouseDown中获得
+            //因为
+						if (HelperDragSelect.Helper.rectSelection_beginPos == undefined)
+							HelperDragSelect.Helper.rectSelection_beginPos = coord;
 						rectSelectionGrid.xMin == undefined
 								? ( rectSelectionGrid.xMin = coord.x )
 								: ( rectSelectionGrid.xMin = Math.min(
@@ -139,17 +140,18 @@
 								coord.y
 								) );
 					}
-
-					let beginPos = HelperDragSelect.Helper.rectSelection_beginPos; //获取真正的选择起、止index矩形
-					if (beginPos == undefined) return; //可能存在开始时没有计算得到起始点的问题
-
-					xMin = Math.min(rectSelectionGrid.xMin, beginPos.x);
-					xMax = Math.max(rectSelectionGrid.xMax, beginPos.x);
-					yMin = Math.min(rectSelectionGrid.yMin, beginPos.y);
-					yMax = Math.max(rectSelectionGrid.yMax, beginPos.y);
-					this.checkBySelectionRect(YKList, xMin, yMin, xMax, yMax); //执行矩形范围内的选择更新，矩形框外的选中要清除
-					break;
 				}
+
+				let beginPos = HelperDragSelect.Helper.rectSelection_beginPos; //获取真正的选择起、止index矩形
+				if (beginPos == undefined) {
+					return;
+				} //可能存在开始时没有计算得到起始点的问题
+
+				xMin = Math.min(rectSelectionGrid.xMin, beginPos.x);
+				xMax = Math.max(rectSelectionGrid.xMax, beginPos.x);
+				yMin = Math.min(rectSelectionGrid.yMin, beginPos.y);
+				yMax = Math.max(rectSelectionGrid.yMax, beginPos.y);
+				this.checkBySelectionRect(YKList, xMin, yMin, xMax, yMax); //执行矩形范围内的选择更新，矩形框外的选中要清除
 			},
 			getItemCoord(YKList, id) {
 				//传入一个id<获取它所在的col,row
@@ -200,46 +202,50 @@
 			},
 			checkBySelectionRect(YKList, xMin, yMin, xMax, yMax) {
 				//执行矩形范围内的选择更新，矩形框外的选中要清除
-				var iBegin = this.getItemIDByPosXY(xMin, yMin);
-				var iEnd = this.getItemIDByPosXY(xMax, yMax);
-				// this.list_sort_checked(); //选中的节点要排序
-				// for (var i = this.list_checked.length - 1; i >= 0; i--) {
-				// 	//判断选择区域外的节点，可能有选中要取消
-				// 	var id = this.list_checked[i];
-				// 	var p = this.listView_get_posXY(id);
-				// 	if (
-				// 			p.x < xMin ||
-				// 			p.x > xMax ||
-				// 			id < iBegin ||
-				// 			id > iEnd ||
-				// 			p.y < yMin ||
-				// 			p.y > yMax
-				// 	) {
-				// 		this.listView_check_set(id, false);
-				// 	}
-				// }
+				var iBegin = this.getItemIDByPosXY(YKList, xMin, yMin);
+				var iEnd = this.getItemIDByPosXY(YKList, xMax, yMax);
+				this.checkSort(YKList); //选中的节点要排序
+				for (let i = YKList.list_checked.length - 1; i >= 0; i--) {
+					//判断选择区域外的节点，可能有选中要取消
+					var id = YKList.list_checked[i];
+					var p = this.getItemCoord(YKList, id);
+					if (
+							p.x < xMin ||
+							p.x > xMax ||
+							id < iBegin ||
+							id > iEnd ||
+							p.y < yMin ||
+							p.y > yMax
+					) {
+						YKList.checkSet(id, false);
+					}
+				}
 
-				//判断选择区域内的节点
-				// for (var i = iBegin; i <= iEnd; i++) {
-				// 	//开始到结束要选中
-				// 	if (i >= this.list.length) break; //可能末尾index超出了list范围
-				// 	if (!this.list[i].isChecked) {
-				// 		//如果是未选中节点
-				// 		var p = this.listView_get_posXY(i);
-				// 		if (p.x >= xMin && p.x <= xMax) this.listView_check_set(i, true);
-				// 	} else {
-				// 		//如果是已选中节点
-				// 		var p = this.listView_get_posXY(i);
-				// 		if (p.x < xMin || p.x > xMax) this.listView_check_set(i, false);
-				// 	}
-				// }
+				// 判断选择区域内的节点
+				for (let i = iBegin; i <= iEnd; i++) {
+					//开始到结束要选中
+					if (i >= YKList.list.length) break; //可能末尾index超出了list范围
+					if (!YKList.list[i].isChecked) {
+						//如果是未选中节点
+						let p = this.getItemCoord(YKList, i);
+						if (p.x >= xMin && p.x <= xMax) YKList.checkSet(i, true);
+					} else {
+						//如果是已选中节点
+						let p = this.getItemCoord(YKList, i);
+						if (p.x < xMin || p.x > xMax) YKList.checkSet(i, false);
+					}
+				}
 			},
 			getItemIDByPosXY(YKList, x, y) { //get item id from its coordinate
 				if (YKList.horizontal) {
-					return this.visible_rows * ( y - 1 ) + x - 1;
+					return YKList.visible_rows * ( y - 1 ) + x - 1;
 				} else {
-					return this.visible_cols * ( y - 1 ) + x - 1;
+					return YKList.visible_cols * ( y - 1 ) + x - 1;
 				}
+			},
+			checkSort(YKList) {
+				//对节点进行排序
+				YKList.list_checked = YKList.list_checked.sort((a, b) => a - b); //排序
 			},
 			hotItem_clear(YKList) {
 				YKList.itemHot = -1;

@@ -29,14 +29,14 @@
                     // custom_beforeMouseDown:function(){
                     //     return false;
                     // },
-                    // horizontal: true
+                    horizontal: true
                 }
             }
         },
         methods: {
             initTestData(){
                 let testtingArray=[];
-                for(let i=0;i<10000;i++){
+                for(let i=0;i<100;i++){
                     testtingArray.push({
                         index:i,
                         name: "name"+i
@@ -49,7 +49,6 @@
         mounted() {
             console.log("Sys Mounted.");
             this.initTestData();
-            this.$refs.ykList1.test();
             console.log(this.$refs.ykList1.list);
         },
     }

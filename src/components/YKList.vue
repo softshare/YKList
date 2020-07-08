@@ -30,6 +30,10 @@
             :key="index"
             class="YKList-list-item"
             v-bind:style="styleItem"
+            @click="onItemClick($event, startIndex + index, item)"
+            v-bind:class="[
+          { 'YKList-list-item-checked': checkIsChecked(startIndex + index) }
+        ]"
         >
           <slot name="YKListItems" v-bind:item="item">
           </slot>
@@ -49,6 +53,7 @@
 		data() {
 			return {
 				list: [],
+				listProps: [],
 				list_checked: [],
 				vcols_total: [], //垂直容器列的数量
 				defaultScrollBarSize: 18, //默认的滚动条占用的像素大小
@@ -149,6 +154,12 @@
 			},
 			splitData() {//当前显示页的数据
 				return this.list.slice(
+						this.startIndex,
+						this.startIndex + this.limitCount
+				);
+			},
+			splitProps() {//当前显示页的数据
+				return this.listProps.slice(
 						this.startIndex,
 						this.startIndex + this.limitCount
 				);
@@ -259,8 +270,30 @@
 			on_dragSelect_mouseUp(event) {
 				HelperDragSelect.Helper.cancel(event);
 			},
-			test() {
-				console.log("this is YKList Component.");
+			onItemClick(event, index, item) {
+				//this.splitProps[index].isChecked = true;
+				// if(this.list_checked.indexOf(index))
+        this.checkToogle(index);
+			},
+			checkIsChecked(index) {
+				return this.list_checked.indexOf(index)>=0;
+			},
+			checkSet(index, isChecked) {
+				var iCheckIndex = this.list_checked.indexOf(index);
+				if(isChecked && iCheckIndex<0){
+					this.list_checked.push(index);
+				}
+				if(!isChecked && iCheckIndex>=0){
+					this.list_checked.splice(iCheckIndex, 1);
+				}
+			},
+			checkToogle(index) { //switch check status
+				var iCheckIndex = this.list_checked.indexOf(index);
+				if (iCheckIndex < 0) {
+					this.list_checked.push(index);
+				} else {
+					this.list_checked.splice(iCheckIndex, 1);
+				}
 			},
 			initTestData() {
 				let testtingArray = [];
@@ -277,8 +310,11 @@
 		watch: {
 			listData: function (newList) {
 				this.list = newList;
+				this.list_checked = [];
+				// for (let i = 0; i < newList.length; i++) {
+				// 	this.listProps.push({isChecked: false});
+				// }
 				this.reCalcTotalRowsCols();
-				console.log(newList);
 			},
 			settings: function () {
 				this.settingsCheck();
@@ -329,7 +365,7 @@
     float: left;
   }
 
-  .YKList-list-item-checked{
+  .YKList-list-item-checked {
     border-inline: 1px solid rgba(41, 152, 255, 0.89);
     background-color: rgba(72, 179, 255, 0.5);
   }
