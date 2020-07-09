@@ -23,14 +23,14 @@
 				listData: [],
 				settings: {
 					id: "ykList1",
-					height: "800px",
+					height: "600px",
 					custom_afterMouseDown: function (event, posInYKList) {
 						console.log(posInYKList)
 					},
 					// custom_beforeMouseDown:function(){
 					//     return false;
 					// },
-					// horizontal: true
+					horizontal: true
 				}
 			}
 		},

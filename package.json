@@ -52,5 +52,8 @@
     "last 2 versions",
     "not dead"
   ],
-  "keywords": ["yklist","listview"]
+  "keywords": [
+    "yklist",
+    "listview"
+  ]
 }
