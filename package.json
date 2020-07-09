@@ -1,8 +1,10 @@
 {
   "name": "yklist",
-  "version": "0.2.4",
+  "version": "0.3.1",
   "private": false,
   "main": "./dist/yklist.common.js",
+  "license": "MIT",
+  "author": "YangKe",
   "files": [
     "dist/*",
     "src/*",
@@ -52,6 +54,14 @@
     "last 2 versions",
     "not dead"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/softshare/YKList.git"
+  },
+  "bugs": {
+    "url": "https://github.com/softshare/YKList/issues"
+  },
+  "homepage": "https://github.com/softshare/YKList",
   "keywords": [
     "yklist",
     "listview"
