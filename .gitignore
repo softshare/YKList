@@ -1,1 +1,3 @@
 node_modules
+/npmlogin.bat
+/npmpublish.bat

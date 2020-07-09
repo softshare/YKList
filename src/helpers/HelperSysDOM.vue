@@ -23,6 +23,7 @@ export default {
     },
     getElementWidth(id) {
       var div = document.getElementById(id);
+      if(div==null) return 0 ;
       var width =
         div.style.width ||
         div.clientWidth ||

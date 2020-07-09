@@ -13,7 +13,6 @@
 
 				let mouseInListViewX = mouseX - offsetLeft; //Get the relative position of mouse: x
 				let mouseInListViewY = mouseY - offsetTop; //Get the relative position of mouse: y
-				console.log(mouseInListViewX, mouseInListViewY)
 
 				let topHeight = 0;
 				let topOffset = 0;
@@ -32,51 +31,14 @@
 					itemY = Math.ceil(( domYKList.scrollTop + mouseInListViewY ) / YKList.itemSize_height); //垂直方向的item;
 					if (itemX >= YKList.total_cols) itemX = 0;
 				}
-				console.log(itemX, itemY)
 				return {
 					itemX, itemY
 				}
-
-
-				// let itemX = Math.ceil(mouseInListViewX / YKList.itemSize_width); //水平方向的item
-				// let itemY = Math.ceil(
-				// 		( mouseInListViewY + topOffset ) / YKList.itemSize_height
-				// ); //垂直方向的item
-				//
-				// if (itemX > YKList.visible_cols) return null; //如果x超出最大列，直接返回空
-				// let itemIndex = YKList.startIndex + (itemY - 1) * YKList.visible_cols + itemX - 1;
-				// if (itemIndex > YKList.list.length - 1) return null; //如果超出最大索引，直接返回空
-				//
-				// let itemLeft = (itemX - 1) * YKList.itemSize_width;
-				// let itemTop = (itemY - 1) * YKList.itemSize_height - topOffset;
-				// let mouseInItemX = mouseInListViewX - itemLeft; //鼠标在item单元内部的相对位置 - X
-				// let mouseInItemY = mouseInListViewY - itemTop; //鼠标在item单元内部的相对位置 - Y
-				//
-				// let padding = 5;
-				// let isMouseInIcon =
-				//   mouseInItemX > (YKList.itemSize_width - YKList.itemSize_image) / 2 && //左侧边界
-				//   mouseInItemX <
-				//     YKList.itemSize_width - (YKList.itemSize_width - YKList.itemSize_image) / 2 && //右侧边界
-				//   mouseInItemY > padding && //顶部边界
-				//   mouseInItemY <
-				//     YKList.itemSize_height -
-				//       padding -
-				//       (YKList.itemSize_height - YKList.itemSize_image); //顶部边界
-				//
-				// return {
-				//   x: itemX, //在可视区域的x
-				//   y: itemY, //在可视区域的y
-				//   id: itemIndex, //总索引位置,
-				//   mouseInItemX,
-				//   mouseInItemY,
-				//   isMouseInIcon
-				// };
 			},
 			checkSelectRect(YKList) {
 				let pBegin = HelperDragSelect.Helper.getPos_begin();
 				let pEnd = HelperDragSelect.Helper.getPos_end();
 				if (pBegin == undefined || pEnd == undefined) return;
-				let domYKList = document.getElementById(YKList.settings.id);
 
 				let offsetLeft = HelperDragSelect.Helper.viewDomInfo.offset.left;
 				let offsetTop = HelperDragSelect.Helper.viewDomInfo.offset.top;
@@ -86,7 +48,11 @@
 				let yMax = Math.max(pBegin.y, pEnd.y) - offsetTop;
 				let r1 = {left: xMin, right: xMax, top: yMin, bottom: yMax};
 
-				let iStart = YKList.startIndex; //the first item index of active page
+				let iStart = 0; //the first item index of active page
+				if (YKList.horizontal)
+					iStart = YKList.startIndex * YKList.visible_rows;
+				else
+					iStart = YKList.startIndex;
 				let iStop = iStart + YKList.visible_cols * YKList.visible_rows; //the last item index of active page
 				if (iStop >= YKList.list.length) iStop = YKList.list.length - 1;
 
@@ -98,6 +64,7 @@
 				};
 
 				let iTopRowOffset = this.getTopOffset(YKList);
+
 				for (let i = iStart; i <= iStop; i++) {
 					//判断当前屏幕内，是否有新的item被选中
 					let inRect = this.isItemInRect(
@@ -110,9 +77,8 @@
 					if (inRect) {
 						//如果在矩形范围内：
 						let coord = this.getItemCoord(YKList, i);
-
 						//关键！！第一次选择的item起点，必须从这里计算获得，不能在mouseDown中获得
-            //因为
+						//因为
 						if (HelperDragSelect.Helper.rectSelection_beginPos == undefined)
 							HelperDragSelect.Helper.rectSelection_beginPos = coord;
 						rectSelectionGrid.xMin == undefined
@@ -145,8 +111,9 @@
 				let beginPos = HelperDragSelect.Helper.rectSelection_beginPos; //获取真正的选择起、止index矩形
 				if (beginPos == undefined) {
 					return;
-				} //可能存在开始时没有计算得到起始点的问题
+				} //可能存在开始时没有计算得到起始点的问题:从边缘的空白部分进行选择
 
+				YKList.setHotItem(-1);
 				xMin = Math.min(rectSelectionGrid.xMin, beginPos.x);
 				xMax = Math.max(rectSelectionGrid.xMax, beginPos.x);
 				yMin = Math.min(rectSelectionGrid.yMin, beginPos.y);
@@ -156,8 +123,8 @@
 			getItemCoord(YKList, id) {
 				//传入一个id<获取它所在的col,row
 				if (YKList.horizontal) {
-					let x = ( id % YKList.total_rows ) + 1;
-					let y = Math.ceil(( id + 1 ) / YKList.total_rows);
+					let x = Math.ceil(( id + 1 ) / YKList.total_rows);
+					let y = ( id % YKList.total_rows ) + 1;
 					return {x, y};
 				} else {
 					let x = ( id % YKList.total_cols ) + 1;
@@ -165,10 +132,10 @@
 					return {x, y};
 				}
 			},
-			getTopOffset(YKList) {// get the top row/col 's offset to the grid top/left
+			getTopOffset(YKList) {// get the first visible row/col 's offset to the grid top/left
 				let domYKList = document.getElementById(YKList.settings.id);
 				if (YKList.horizontal) {
-					let iTopVisibleColIndex = this.getItemCoord(YKList, YKList.startIndex).x;
+					let iTopVisibleColIndex = this.getItemCoord(YKList, YKList.startIndex * YKList.visible_rows).x;
 					let iTopVisibleColScrollShouldBe = ( iTopVisibleColIndex - 1 ) * YKList.itemSize_width;
 					return domYKList.scrollLeft - iTopVisibleColScrollShouldBe;
 				} else {
@@ -180,8 +147,15 @@
 			isItemInRect(YKList, itemIndex, iTopRowOffset, r1) {
 				//判断一个index的item图像矩形，是否在鼠标框选的矩形框范围内
 				var itemInfo = this.getRelativeCoord(YKList, itemIndex); //获取这个节点在虚拟Grid上的相对坐标范围
-				var topX = ( itemInfo.x - 1 ) * YKList.itemSize_width;
-				var topY = ( itemInfo.y - 1 ) * YKList.itemSize_height - iTopRowOffset;
+				var topX = 0;
+				var topY = 0;
+				if (YKList.horizontal) {
+					topX = ( itemInfo.x - 1 ) * YKList.itemSize_width - iTopRowOffset;
+					topY = ( itemInfo.y - 1 ) * YKList.itemSize_height;
+				} else {
+					topX = ( itemInfo.x - 1 ) * YKList.itemSize_width;
+					topY = ( itemInfo.y - 1 ) * YKList.itemSize_height - iTopRowOffset;
+				}
 				var r2 = {
 					left: topX,
 					right: topX + YKList.itemSize_width,
@@ -197,13 +171,19 @@
 			},
 			getRelativeCoord(YKList, id) { //get a item's col/row info relative the startIndex
 				var pos = this.getItemCoord(YKList, id);
-				var posStartIndex = this.getItemCoord(YKList, YKList.startIndex);
+				var posStartIndex = 0;
+				if (YKList.horizontal)
+					posStartIndex = this.getItemCoord(YKList, YKList.startIndex * YKList.visible_rows);
+				else
+					posStartIndex = this.getItemCoord(YKList, YKList.startIndex);
+
 				return {x: pos.x - posStartIndex.x + 1, y: pos.y - posStartIndex.y + 1};
 			},
 			checkBySelectionRect(YKList, xMin, yMin, xMax, yMax) {
 				//执行矩形范围内的选择更新，矩形框外的选中要清除
 				var iBegin = this.getItemIDByPosXY(YKList, xMin, yMin);
 				var iEnd = this.getItemIDByPosXY(YKList, xMax, yMax);
+
 				this.checkSort(YKList); //选中的节点要排序
 				for (let i = YKList.list_checked.length - 1; i >= 0; i--) {
 					//判断选择区域外的节点，可能有选中要取消
@@ -220,7 +200,6 @@
 						YKList.checkSet(id, false);
 					}
 				}
-
 				// 判断选择区域内的节点
 				for (let i = iBegin; i <= iEnd; i++) {
 					//开始到结束要选中
@@ -228,17 +207,26 @@
 					if (!YKList.list[i].isChecked) {
 						//如果是未选中节点
 						let p = this.getItemCoord(YKList, i);
-						if (p.x >= xMin && p.x <= xMax) YKList.checkSet(i, true);
+						if (YKList.horizontal) {
+							if (p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax) YKList.checkSet(i, true);
+						} else {
+							if (p.x >= xMin && p.x <= xMax) YKList.checkSet(i, true);
+						}
+						// break;
 					} else {
 						//如果是已选中节点
 						let p = this.getItemCoord(YKList, i);
-						if (p.x < xMin || p.x > xMax) YKList.checkSet(i, false);
+						if (YKList.horizontal) {
+							if (p.x < xMin || p.x > xMax || p.y < yMin || p.y > yMax) YKList.checkSet(i, false);
+						} else {
+							if (p.x < xMin || p.x > xMax) YKList.checkSet(i, false);
+						}
 					}
 				}
 			},
 			getItemIDByPosXY(YKList, x, y) { //get item id from its coordinate
 				if (YKList.horizontal) {
-					return YKList.visible_rows * ( y - 1 ) + x - 1;
+					return YKList.visible_rows * ( x - 1 ) + y - 1;
 				} else {
 					return YKList.visible_cols * ( y - 1 ) + x - 1;
 				}
@@ -247,25 +235,39 @@
 				//对节点进行排序
 				YKList.list_checked = YKList.list_checked.sort((a, b) => a - b); //排序
 			},
-			hotItem_clear(YKList) {
-				YKList.itemHot = -1;
-			},
-			checkAll(YKList) {
-				//所有选中
-				if (YKList.list_checked.length == YKList.list.length) return; //不要重复设置全选
-				YKList.list_checked = [];
-				for (let i = 0; i < YKList.list.length; i++) {
-					YKList.list[i].isChecked = true;
-					YKList.list_checked.push(i);
-				} // this.list_checked = Array.from(this.list) //ES6语法，复制数组
-			},
-			unCheckAll(YKList) {
-				//清楚所有选中
-				for (let i = 0; i < YKList.list_checked.length; i++) {
-					YKList.list[YKList.list_checked[i]].isChecked = false;
+			hotItem_setByKey(YKList, keyCode, isShift) {
+				if (YKList.list.length < 0) return; //确定有数据
+				var newID = 0; //37-左,38-上,39-右,40-下
+				if (YKList.horizontal) {
+					if (keyCode == 38) newID = YKList.itemHot - 1;
+					if (keyCode == 37) newID = YKList.itemHot - YKList.total_rows;
+					if (keyCode == 40) newID = YKList.itemHot + 1;
+					if (keyCode == 39) newID = YKList.itemHot + YKList.total_rows;
+				} else {
+					if (keyCode == 37) newID = YKList.itemHot - 1;
+					if (keyCode == 38) newID = YKList.itemHot - YKList.total_cols;
+					if (keyCode == 39) newID = YKList.itemHot + 1;
+					if (keyCode == 40) newID = YKList.itemHot + YKList.total_cols;
 				}
-				YKList.list_checked = [];
-				this.listView_hotItem_clear(YKList);
+				if (keyCode == 35) newID = YKList.list.length - 1;
+				if (keyCode == 36) newID = 0;
+				if (newID < 0) newID = 0;
+				if (newID >= YKList.list.length) newID = YKList.list.length - 1;
+				if (isShift) {
+					this.checkRangeByShifIndex(YKList, newID);
+				} else {
+					YKList.unCheckAll(); //如果shift,ctrl都没有按下，需要清空所有已选择
+					YKList.checkSet(newID, true);
+				}
+				YKList.setHotItem(newID);
+			},
+			checkRangeByShifIndex(YKList, index) {
+				if (YKList.list_checked.length < 0) return null;
+				let iCheckFrom = YKList.list_checked[0];
+				let iCheckTo = YKList.list_checked[YKList.list_checked.length - 1];
+				if (index > iCheckTo) YKList.checkBetween(iCheckFrom, index);
+				if (index < iCheckFrom) YKList.checkBetween(index, iCheckTo);
+				if (index > iCheckFrom && index <iCheckTo) YKList.checkBetween(iCheckFrom, index);
 			},
 
 		}

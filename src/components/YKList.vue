@@ -4,7 +4,9 @@
       ref="settings.id"
       tabindex="0"
       :id="settings.id"
+      :style="{height:styleListHeight}"
       @scroll="onScroll"
+      @keydown="onListViewKeyDown($event)"
       v-bind:class="[
           { 'YKList-listMain-vert': settings.horizontal==false },
           { 'YKList-listMain-hori': settings.horizontal==true },
@@ -17,7 +19,14 @@
              style="height: 100%;float:left;clear:none;"
              :style="{width:itemSize_width+'px'}"
         >
-          <div v-for="(item2, index2) in item.data" :key='index2' class="YKList-list-item" v-bind:style="styleItem">
+          <div v-for="(item2, index2) in item.data" :key='index2' class="YKList-list-item" v-bind:style="styleItem"
+               @click="onItemClick($event, (startIndex + index) * visible_rows + index2, item)"
+               :id="getItemDomID((startIndex + index) * visible_rows + index2)"
+               v-bind:class="[
+          { 'YKList-list-item-checked': isChecked((startIndex + index) * visible_rows + index2) },
+          { 'YKList-list-item-hot': isHotItem((startIndex + index) * visible_rows + index2) },
+        ]"
+          >
             <slot name="YKListItems" v-bind:item="item2">
             </slot>
           </div>
@@ -31,8 +40,10 @@
             class="YKList-list-item"
             v-bind:style="styleItem"
             @click="onItemClick($event, startIndex + index, item)"
+            :id="getItemDomID(startIndex + index)"
             v-bind:class="[
-          { 'YKList-list-item-checked': checkIsChecked(startIndex + index) }
+          { 'YKList-list-item-checked': isChecked(startIndex + index) },
+          { 'YKList-list-item-hot': isHotItem(startIndex + index) }
         ]"
         >
           <slot name="YKListItems" v-bind:item="item">
@@ -45,15 +56,16 @@
 <script>
 	import HelperDragSelect from "@/helpers/HelperDragSelect";
 	import HelperCtlListView from "@/helpers/HelperCtlListView";
+	import HelperSysDOM from "../helpers/HelperSysDOM";
 
 	let elementResizeDetectorMaker = require("element-resize-detector");
 	let erd = elementResizeDetectorMaker();
 
 	export default {
+		name: 'YKList',
 		data() {
 			return {
 				list: [],
-				listProps: [],
 				list_checked: [],
 				vcols_total: [], //垂直容器列的数量
 				defaultScrollBarSize: 18, //默认的滚动条占用的像素大小
@@ -112,6 +124,9 @@
 			},
 		},
 		computed: {
+			dom() {
+				return document.getElementById(this.settings.id);
+			},
 			horizontal() {
 				return this.settings.horizontal;
 			},
@@ -124,7 +139,7 @@
 			visible_cols() {  //虚拟滚动数据的显示总列数
 				let v = 0;
 				if (this.horizontal) {
-					v = Math.ceil(this.listWidth / this.itemSize_width) + 1; //+1可以增加滚动平滑度
+					v = Math.ceil(this.listWidth / this.itemSize_width) + 0; //+1可以增加滚动平滑度
 				} else {
 					v = Math.floor(( this.listWidth - this.defaultScrollBarSize ) / this.itemSize_width);
 				}
@@ -154,12 +169,6 @@
 			},
 			splitData() {//当前显示页的数据
 				return this.list.slice(
-						this.startIndex,
-						this.startIndex + this.limitCount
-				);
-			},
-			splitProps() {//当前显示页的数据
-				return this.listProps.slice(
 						this.startIndex,
 						this.startIndex + this.limitCount
 				);
@@ -203,17 +212,20 @@
 			vcols_getArray() { //获取当前虚拟滚动区域，要显示的列范围
 				return this.vcols_total.slice(this.startIndex, this.startIndex + this.visible_cols)
 			},
+			styleListHeight() {
+				return this.settings.height == undefined ? "600px" : this.settings.height
+			},
+			styleListWidth() {
+				return this.settings.width == undefined ? "100%" : this.settings.width
+			}
 		},
 		methods: {
 			setListData(list) {//设置列表数据
 				this.list = list;
 			},
 			reCalcTotalRowsCols() {//计算行、列的数量；垂直、水平的列表，计算方式不同
-				let element = document.getElementById(this.settings.id);
-				let width = element.offsetWidth;
-				let height = element.offsetHeight;
-				this.listWidth = width;
-				this.listHeight = height;
+				this.listWidth = this.dom.offsetWidth;
+				this.listHeight = this.dom.offsetHeight;
 				if (this.horizontal) {
 					this.total_rows = Math.floor(( this.listHeight - 18 ) / this.itemSize_height);
 					if (this.total_rows <= 0) this.total_rows = 1;
@@ -223,7 +235,6 @@
 					if (this.total_cols <= 0) this.total_cols = 1;
 					this.total_rows = Math.ceil(this.list.length / this.total_cols);
 				}
-				console.log(this.total_rows, this.total_cols)
 				if (this.horizontal) {
 					this.vcols_total = new Array(this.total_cols)
 					for (let i = 0; i < this.vcols_total.length; i++) {
@@ -240,20 +251,39 @@
 			onScroll() {
 				// 根据滚动的距离，估算出这个滚动位置对应的数组序列，例如滚动100px，每条40px，对应第3条
 				if (this.horizontal) {
-					let scrollLeft = document.getElementById(this.settings.id).scrollLeft;
+					let scrollLeft = this.dom.scrollLeft;
 					let colStartIndex = Math.floor(scrollLeft / this.itemSize_width)
-					let maxStartIndexLimit = this.total_cols - this.visible_cols //非常重要，要设置最大的滚动起始点，必须是n列中，所有页-1
+					let maxStartIndexLimit = this.total_cols - this.visible_cols; //非常重要，要设置最大的滚动起始点，必须是n列中，所有页-1
 					if (colStartIndex >= maxStartIndexLimit) colStartIndex = maxStartIndexLimit //水平滚动条会自动延展，要检查超限
 					if (colStartIndex < 0) colStartIndex = 0
 					this.startIndex = colStartIndex
 				} else {
-					let scrollTop = document.getElementById(this.settings.id).scrollTop;
+					let scrollTop = this.dom.scrollTop;
 					this.startIndex =
 							Math.floor(scrollTop / this.itemSize_height) *
 							this.total_cols; //当前是第几个item，而不是第几行
 				}
 			},
-			onLayoutResized() {
+			onListViewKeyDown(e) {
+				if (
+						//屏蔽：37-左,38-上,39-右,40-下
+						e.keyCode == 37 || //左
+						e.keyCode == 38 || //上
+						e.keyCode == 39 || ////右
+						e.keyCode == 40 || //下
+						e.keyCode == 35 || //End
+						e.keyCode == 36 //Home
+				) {
+					e.preventDefault();
+					HelperCtlListView.Helper.hotItem_setByKey(this, e.keyCode, e.shiftKey);
+					return;
+				}
+
+				if (e.key == "a" && e.ctrlKey) {
+					this.checkAll();
+					return;
+				}
+			}, onLayoutResized() {
 				this.reCalcTotalRowsCols();
 			},
 			on_dragSelect_mouseDown(event) {
@@ -271,19 +301,100 @@
 				HelperDragSelect.Helper.cancel(event);
 			},
 			onItemClick(event, index, item) {
-				//this.splitProps[index].isChecked = true;
-				// if(this.list_checked.indexOf(index))
-        this.checkToogle(index);
+				if (event.shiftKey && this.list_checked.length > 0) {
+					HelperCtlListView.Helper.checkSort(this);
+					HelperCtlListView.Helper.checkRangeByShifIndex(this, index);
+					this.setHotItem(index)
+					return;
+				}
+
+				if (event.ctrlKey || event.altKey) {
+					this.checkToogle(index)
+				} else {
+					this.unCheckAll();
+					this.checkToogle(index);
+				}
+
+				if (this.isChecked(index)) {
+					this.setHotItem(index);
+				} else {
+					if (this.list_checked.length > 0)
+						this.setHotItem(this.list_checked[this.list_checked.length - 1]);
+				}
+
 			},
-			checkIsChecked(index) {
-				return this.list_checked.indexOf(index)>=0;
+			tm_autoScroll() { //the timer of auto scrolling
+				if (!HelperDragSelect.Helper.isDoing()) return;
+				var posBegin = HelperDragSelect.Helper.getPos_begin();
+				var posEnd = HelperDragSelect.Helper.getPos_end();
+				var offsetTop = HelperDragSelect.Helper.viewDomInfo.offset.top;
+				var offsetLeft = HelperDragSelect.Helper.viewDomInfo.offset.left;
+				var x = posEnd.x - offsetLeft;
+				var y = posEnd.y - offsetTop;
+				var iScrollTo = undefined;
+
+				if (this.horizontal) {
+					if (
+							posBegin.x > posEnd.x &&
+							x < this.itemSize_width &&
+							this.dom.scrollLeft > 0
+					) {//left?
+						iScrollTo = this.dom.scrollLeft - this.itemSize_width / 2;
+						if (iScrollTo < 0) iScrollTo = 0;
+					}
+					if (
+							posBegin.x < posEnd.x &&
+							x > this.listWidth - this.itemSize_width &&
+							this.dom.scrollLeft < this.scrollMaxSize
+					) {//right?
+						iScrollTo = this.dom.scrollLeft + this.itemSize_width / 2;
+						if (iScrollTo > this.scrollMaxSize) iScrollTo = this.scrollMaxSize;
+					}
+					if (iScrollTo != undefined) {
+						this.dom.scrollLeft = iScrollTo; //执行滚动
+						HelperCtlListView.Helper.checkSelectRect(this);
+					}
+				} else {
+					if (
+							posBegin.y > posEnd.y &&
+							y < this.itemSize_height &&
+							this.dom.scrollTop > 0
+					) {//up?
+						iScrollTo = this.dom.scrollTop - this.itemSize_height / 2;
+						if (iScrollTo < 0) iScrollTo = 0;
+					}
+					if (
+							posBegin.y < posEnd.y &&
+							y > this.listHeight - this.itemSize_height &&
+							this.dom.scrollTop < this.scrollMaxSize
+					) {//down?
+						iScrollTo = this.dom.scrollTop + this.itemSize_height / 2;
+						if (iScrollTo > this.scrollMaxSize) iScrollTo = this.scrollMaxSize;
+					}
+					if (iScrollTo != undefined) {
+						this.dom.scrollTop = iScrollTo; //执行滚动
+						HelperCtlListView.Helper.checkSelectRect(this);
+					}
+				}
+			},
+			getItemDomID(index) {
+				return 'YKList_Item_' + index;
+			},
+			isChecked(index) {
+				return this.list_checked.indexOf(index) >= 0;
+			},
+			isHotItem(index) {
+				return this.itemHot == index;
+			},
+			setHotItem(index) {
+				this.itemHot = index;
 			},
 			checkSet(index, isChecked) {
 				var iCheckIndex = this.list_checked.indexOf(index);
-				if(isChecked && iCheckIndex<0){
+				if (isChecked && iCheckIndex < 0) {
 					this.list_checked.push(index);
 				}
-				if(!isChecked && iCheckIndex>=0){
+				if (!isChecked && iCheckIndex >= 0) {
 					this.list_checked.splice(iCheckIndex, 1);
 				}
 			},
@@ -295,25 +406,32 @@
 					this.list_checked.splice(iCheckIndex, 1);
 				}
 			},
-			initTestData() {
-				let testtingArray = [];
-				for (let i = 0; i < 50; i++) {
-					testtingArray.push({
-						index: i,
-						name: "name" + i
-					});
+			checkAll() {
+				if (this.list_checked.length == this.list.length) return; //不要重复设置全选
+				this.list_checked = [];
+				for (let i = 0; i < this.list.length; i++) {
+					this.list_checked.push(i);
 				}
-				this.setListData(testtingArray);
-				console.log("Testing Data Created.");
-			}
+			},
+			checkBetween(indexFrom, indexTo) {
+				this.unCheckAll();
+				for (let i = indexFrom; i <= indexTo; i++) this.checkSet(i, true)
+			},
+			unCheckAll() {
+				this.list_checked = [];
+				this.setHotItem(-1);
+			},
+			setItemVisible(index) {
+				// let coord = this.getItemCoord(YKList, index);
+			},
+			isItemVisible(index) {
+				// let coord = this.getItemCoord(YKList, index);
+			},
 		},
 		watch: {
 			listData: function (newList) {
 				this.list = newList;
 				this.list_checked = [];
-				// for (let i = 0; i < newList.length; i++) {
-				// 	this.listProps.push({isChecked: false});
-				// }
 				this.reCalcTotalRowsCols();
 			},
 			settings: function () {
@@ -326,16 +444,17 @@
 		},
 		mounted() {
 			let vmobj = this; //开始监听div缩放事件
-			erd.listenTo(document.getElementById(vmobj.settings.id), function () {
+			erd.listenTo(vmobj.dom, function () {
 				vmobj.onLayoutResized();
 			});
 			HelperDragSelect.Helper.init(this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
+			setInterval(this.tm_autoScroll, 400);
 		},
 	}
 </script>
 <style>
   .YKList-listMain {
-    height: 100%;
+    height: 500px;
     width: 100%;
     /*background-color: antiquewhite;*/
     border: 0px;
@@ -366,7 +485,14 @@
   }
 
   .YKList-list-item-checked {
-    border-inline: 1px solid rgba(41, 152, 255, 0.89);
+    background-color: rgba(72, 179, 255, 0.5);
+  }
+
+  .YKList-list-item-hot {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box; /* Firefox */
+    -webkit-box-sizing: border-box; /* Safari */
+    border: 1px solid rgba(41, 152, 255, 0.89);
     background-color: rgba(72, 179, 255, 0.5);
   }
 
