@@ -179,6 +179,20 @@
                     this.startIndex + this.limitCount
                 );
             },
+            parentContainerSize(){
+                // if(this.dom==null ) return null;
+                // console.log(this.dom.parentNode);
+                // if(this.dom.parentNode==null) return null;
+                // console.log(this.dom.parentNode);
+                // return{
+                //     w:  this.dom.parentNode.offsetWidth,
+                //     h:  this.dom.parentNode.offsetHeight,
+                // }
+                // return this.dom!=null?this.dom.parentNode.offsetHeight:null;
+                // console.log(this.settings.id);
+                // console.log(document.getElementById(this.settings.id));
+                return 0;
+            },
             styleInnerScroll() {
                 if (this.horizontal) {
                     return {
@@ -535,6 +549,9 @@
                 this.settingsCheck();
                 this.reCalcTotalRowsCols();
             },
+            parentContainerSize: function (newVal) {
+                console.log(newVal);
+            },
         },
         created() {
             this.settingsCheck();
@@ -546,6 +563,10 @@
             });
             HelperDragSelect.Helper.init(this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
             setInterval(this.tm_autoScroll, 400);
+            console.log(this.dom)
+            console.log(this.dom.parentNode)
+            console.log(this.dom.parentNode.offsetHeight)
+            this.settings.height = this.dom.parentNode.offsetHeight;
         },
     }
 </script>

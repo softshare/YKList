@@ -64,6 +64,10 @@
   "homepage": "https://github.com/softshare/YKList",
   "keywords": [
     "yklist",
-    "listview"
+    "listview",
+    "ui",
+    "vue",
+    "front-end",
+    "js"
   ]
 }

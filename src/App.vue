@@ -1,5 +1,4 @@
 <template>
-  <!--    <div id="app" style="width:100%;height:800px;background-color: rgba(44,62,80,0.2);">-->
   <YKList msg="Welcome to Your Vue.js App" ref="ykList1" :settings="settings" :listData="listData">
     <template v-slot:YKListItems="YKListItems">
       <div onselectstart="return false;">
@@ -7,7 +6,6 @@
       </div>
     </template>
   </YKList>
-  <!--    </div>-->
 </template>
 
 <script>
@@ -23,7 +21,6 @@
 				listData: [],
 				settings: {
 					id: "ykList1",
-					height: "500px",
 					charSortBy: "name",
 					onListClick: function (event, itemInfo) {
 						console.log('click', itemInfo);
@@ -46,7 +43,7 @@
 			},
 			initTestData() {
 				let testtingArray = [];
-				for (let i = 0; i < 100; i++) {
+				for (let i = 0; i < 200; i++) {
 					testtingArray.push({
 						index: i,
 						name: this.getRandomName() + i
@@ -71,6 +68,20 @@
     text-align: center;
     color: #2c3e50;
     margin-top: 60px;
-
   }
+
+  body{
+    height: auto;
+    min-height: 100%;
+  }
+
+  * {
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    height: 100%;
+  }
+
 </style>
