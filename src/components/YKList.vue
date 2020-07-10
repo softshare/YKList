@@ -7,6 +7,9 @@
             :style="{height:styleListHeight}"
             @scroll="onScroll"
             @keydown="onListViewKeyDown($event)"
+            @mousedown="onListViewContainerMouseDown($event)"
+            @mouseup="onListViewContainerMouseUp($event)"
+            @dblclick="onListViewContainerDoubleClick($event)"
             v-bind:class="[
           { 'YKList-listMain-vert': settings.horizontal==false },
           { 'YKList-listMain-hori': settings.horizontal==true },
@@ -28,7 +31,7 @@
           { 'YKList-list-item-hot': isHotItem((startIndex + index) * visible_rows + index2) },
         ]"
                     >
-                        <slot name="YKListItems" v-bind:item="item2">
+                        <slot name="YKListItems" v-bind:item="item2" v-bind:index="(startIndex + index) * visible_rows + index2">
                         </slot>
                     </div>
                 </div>
@@ -47,7 +50,7 @@
           { 'YKList-list-item-hot': isHotItem(startIndex + index) }
         ]"
                 >
-                    <slot name="YKListItems" v-bind:item="item">
+                    <slot name="YKListItems" v-bind:item="item" v-bind:index="startIndex + index">
                     </slot>
                 </div>
             </template>
@@ -68,6 +71,7 @@
             return {
                 list: [],
                 list_checked: [],
+                list_charSort: [], // array which stored the first char to sort
                 vcols_total: [], //垂直容器列的数量
                 defaultScrollBarSize: 18, //默认的滚动条占用的像素大小
                 fileListView_MouseTime: 0, //计算是否是list单击的时间缓存
@@ -79,6 +83,7 @@
                 startIndex: 0, //虚拟显示的开始item
                 itemHot: -1, //当前的热点item
                 scrollTopValue: 0, //监测滚动条是否停止滚动的变量
+                MouseTime: 0, //Detect mouse click event
                 iLoadIconLP_Index: 0 //自动加载低优先级缩略图图标生成任务的索引值
             };
         },
@@ -88,10 +93,14 @@
                 required: true,
                 default: function () {
                     return {
-                        custom_beforeMouseDown: function () {
+                        beforeMouseDown: function (event, itemInfo) {
                             return true;
                         },
-                        custom_afterMouseDown: function (event, posInYKList) {
+                        onListClick: function (event, itemInfo) {
+                            return;
+                        },
+                        onListDblClick: function (event, itemInfo) {
+                            return;
                         },
                     }
                 }
@@ -263,29 +272,83 @@
             },
             onListViewKeyDown(e) {
                 if (
-                    //屏蔽：37-左,38-上,39-右,40-下
-                    e.keyCode == 37 || //左
-                    e.keyCode == 38 || //上
-                    e.keyCode == 39 || ////右
-                    e.keyCode == 40 || //下
-                    e.keyCode == 35 || //End
-                    e.keyCode == 36 //Home
-                ) {
+                    e.keyCode == 33 || //page up
+                    e.keyCode == 34 || //page down
+                    e.keyCode == 37 || //left
+                    e.keyCode == 38 || //up
+                    e.keyCode == 39 || //right
+                    e.keyCode == 40 || //down
+                    e.keyCode == 35 || //end
+                    e.keyCode == 36 //home
+                ) { //Direction Selection
                     e.preventDefault();
                     HelperCtlListView.Helper.hotItem_setByKey(this, e.keyCode, e.shiftKey);
                     return;
                 }
 
-                if (e.key == "a" && e.ctrlKey) {
+                if (e.key == "a" && e.ctrlKey) { //Select All
                     this.checkAll();
                     return;
                 }
-            }, onLayoutResized() {
+
+                if (
+                    (e.keyCode >= 48 && //0
+                        e.keyCode <= 57) || //9
+                    (e.keyCode >= 65 && //a
+                        e.keyCode <= 90) //z
+                ) {
+                    HelperCtlListView.Helper.hotItem_setByChar(this, e.key);
+                    return;
+                }
+            },
+            onListViewContainerMouseDown(event) {
+                this.MouseTime = HelperCtlListView.Helper.getTimeStamp();
+            },
+            onListViewContainerMouseUp(event) {
+                var clickTime =
+                    HelperCtlListView.Helper.getTimeStamp() - this.MouseTime;
+                if (
+                    clickTime <= 200 &&
+                    !event.shiftKey &&
+                    !event.ctrlKey &&
+                    event.button == 0
+                ) {
+                    //鼠标左键按下，弹起时间不超过?毫秒，视为单击
+                    var itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
+                        this,
+                        event.pageX,
+                        event.pageY
+                    );
+                    if (itemAtMouse == null) {
+                        this.unCheckAll();
+                        this.clearHotItem();
+                    }
+                    if (this.settings.onListClick!=undefined) {
+                        this.settings.onListClick(event, itemAtMouse);
+                    }
+                }
+            },
+            onListViewContainerDoubleClick(event) {
+                var itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
+                    this,
+                    event.pageX,
+                    event.pageY
+                );
+                if (this.settings.onListDblClick!=undefined) {
+                    this.settings.onListDblClick(event, itemAtMouse);
+                }
+            },
+            onLayoutResized() {
                 this.reCalcTotalRowsCols();
             },
             on_dragSelect_mouseDown(event) {
                 if (event.shiftKey || event.ctrlKey) return; //如果此时用户按下了shift或者ctrl，可能是在进行鼠标选择，不能处理拖拽
-                if (this.settings.custom_beforeMouseDown != undefined && !this.settings.custom_beforeMouseDown()) return;
+                var itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
+                    this,
+                    event.pageX,
+                    event.pageY
+                );
+                if (this.settings.beforeMouseDown != undefined && !this.settings.beforeMouseDown(event, itemAtMouse)) return;
                 HelperDragSelect.Helper.doMouseDown(event, this);
             },
             on_dragSelect_mouseMove(event) {
@@ -389,6 +452,9 @@
                     this.setItemVisible(index);
                 }
             },
+            clearHotItem(){
+                this.setHotItem(-1);
+            },
             checkSet(index, isChecked) {
                 var iCheckIndex = this.list_checked.indexOf(index);
                 if (isChecked && iCheckIndex < 0) {
@@ -419,7 +485,7 @@
             },
             unCheckAll() {
                 this.list_checked = [];
-                this.setHotItem(-1);
+                this.clearHotItem();
             },
             setItemVisible(index) {
                 let coord = HelperCtlListView.Helper.getItemCoord(this, index);
@@ -433,7 +499,6 @@
                 } else {
                     let posTop = (coordRelativeStart.y - 1) * this.itemSize_height - offsetStart;
                     let posBottom = posTop + this.itemSize_height - this.listHeight;
-                    console.log('posBottom', posBottom);
                     if (posTop < 0) this.dom.scrollTop = (coord.y - 1) * this.itemSize_height;
                     if (posBottom > 0) this.dom.scrollTop = coord.y * this.itemSize_height - this.listHeight ;
                 }
@@ -456,7 +521,15 @@
             listData: function (newList) {
                 this.list = newList;
                 this.list_checked = [];
+                this.list_charSort = [];
                 this.reCalcTotalRowsCols();
+                if(this.settings.charSortBy!=undefined){
+                    for(let i=0; i<this.list.length;i++){
+                        let sortValue = eval("this.list[i]."+this.settings.charSortBy).toString();
+                        if(sortValue.length>0) sortValue= sortValue[0].toLowerCase();
+                        this.list_charSort.push(sortValue);
+                    }
+                }
             },
             settings: function () {
                 this.settingsCheck();

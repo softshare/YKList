@@ -7,32 +7,33 @@
 			//根据鼠标的绝对坐标，获取下方的item对象信息
 			getItemInfoByMouse(YKList, mouseX, mouseY) {
 				//根据鼠标的绝对坐标，获取点击下的item信息
-				let domYKList = document.getElementById(YKList.settings.id);
+				let domYKList = YKList.dom;
 				let offsetLeft = HelperSysDOM.Helper.getElementLeft(domYKList);
 				let offsetTop = HelperSysDOM.Helper.getElementTop(domYKList);
 
 				let mouseInListViewX = mouseX - offsetLeft; //Get the relative position of mouse: x
 				let mouseInListViewY = mouseY - offsetTop; //Get the relative position of mouse: y
 
-				let topHeight = 0;
-				let topOffset = 0;
+				let index = 0; // item index
 				let itemX = 0;
 				let itemY = 0;
 				if (YKList.horizontal) {
-					topHeight = ( YKList.startIndex / YKList.visible_rows ) * YKList.itemSize_width; //startIndex的标准位置
-					topOffset = domYKList.scrollLeft - topHeight; //偏移量
 					itemX = Math.ceil(( domYKList.scrollLeft + mouseInListViewX ) / YKList.itemSize_width); //水平方向的item;
 					itemY = Math.ceil(mouseInListViewY / YKList.itemSize_height);
-					if (itemY >= YKList.total_rows) itemY = 0;
+					if (itemX > YKList.total_cols) return null;
+					if (itemY > YKList.total_rows) return null;
+					index = (itemX-1) * YKList.total_rows + (itemY-1);
+					if (index >= YKList.list.length ) return null;
 				} else {
-					topHeight = ( YKList.startIndex / YKList.visible_cols ) * YKList.itemSize_height; //startIndex的标准位置
-					topOffset = domYKList.scrollTop - topHeight; //偏移量
 					itemX = Math.ceil(mouseInListViewX / YKList.itemSize_width);
-					itemY = Math.ceil(( domYKList.scrollTop + mouseInListViewY ) / YKList.itemSize_height); //垂直方向的item;
-					if (itemX >= YKList.total_cols) itemX = 0;
+					itemY = Math.ceil(( domYKList.scrollTop + mouseInListViewY ) / YKList.itemSize_height); //水平方向的item;
+					if (itemX > YKList.total_cols) return null;
+					if (itemY > YKList.total_rows) return null;
+					index =(itemY-1) * YKList.total_cols + (itemX-1);
+					if (index>= YKList.list.length ) return null;
 				}
 				return {
-					itemX, itemY
+					itemX, itemY, index
 				}
 			},
 			checkSelectRect(YKList) {
@@ -113,7 +114,7 @@
 					return;
 				} //可能存在开始时没有计算得到起始点的问题:从边缘的空白部分进行选择
 
-				YKList.setHotItem(-1);
+				YKList.clearHotItem();
 				xMin = Math.min(rectSelectionGrid.xMin, beginPos.x);
 				xMax = Math.max(rectSelectionGrid.xMax, beginPos.x);
 				yMin = Math.min(rectSelectionGrid.yMin, beginPos.y);
@@ -237,18 +238,29 @@
 			},
 			hotItem_setByKey(YKList, keyCode, isShift) {
 				if (YKList.list.length < 0) return; //确定有数据
-				var newID = 0; //37-左,38-上,39-右,40-下
+				if (YKList.itemHot == -1 ){
+					YKList.checkSet(0, true);
+					YKList.setHotItem(0);
+					return;
+				}
+				let newID = 0; //37-左,38-上,39-右,40-下
+        let pageSize = 0;
+        let coordHot = this.getItemCoord(YKList,YKList.itemHot);
 				if (YKList.horizontal) {
+					pageSize = YKList.total_rows * (YKList.visible_cols-1);
 					if (keyCode == 38) newID = YKList.itemHot - 1;
 					if (keyCode == 37) newID = YKList.itemHot - YKList.total_rows;
 					if (keyCode == 40) newID = YKList.itemHot + 1;
 					if (keyCode == 39) newID = YKList.itemHot + YKList.total_rows;
 				} else {
+					pageSize = YKList.total_cols * (YKList.visible_rows-1);
 					if (keyCode == 37) newID = YKList.itemHot - 1;
 					if (keyCode == 38) newID = YKList.itemHot - YKList.total_cols;
 					if (keyCode == 39) newID = YKList.itemHot + 1;
 					if (keyCode == 40) newID = YKList.itemHot + YKList.total_cols;
 				}
+				if (keyCode == 33) newID = YKList.itemHot - pageSize;
+				if (keyCode == 34) newID = YKList.itemHot + pageSize;
 				if (keyCode == 35) newID = YKList.list.length - 1;
 				if (keyCode == 36) newID = 0;
 				if (newID < 0) newID = 0;
@@ -261,6 +273,26 @@
 				}
 				YKList.setHotItem(newID);
 			},
+			hotItem_setByChar(YKList, key) { //change the hot item by key press of char
+				key = key.toLowerCase();
+				var iFirstIndex = YKList.list_charSort.indexOf(key); //当前key在文件首字母索引中的位置
+				if (iFirstIndex < 0) return; //根本就不存在，直接返回
+				var iStartIndex = 0;
+				if (YKList.list_checked.length > 0) {
+					//有已选中，而且选中的首字母和key一样
+					iStartIndex = YKList.list_checked[0] + 1; //从下一个开始计算
+					var subArray = YKList.list_charSort.slice(iStartIndex);
+					if (subArray.indexOf(key) < 0) iStartIndex = iFirstIndex; //从头开始
+				}
+				for (var i = iStartIndex; i < YKList.list_charSort.length; i++) {
+					if (key == YKList.list_charSort[i]) {
+						YKList.unCheckAll();
+						YKList.checkSet(i, true);
+						YKList.setHotItem(i);
+						break;
+					}
+				}
+			},
 			checkRangeByShifIndex(YKList, index) {
 				if (YKList.list_checked.length < 0) return null;
 				let iCheckFrom = YKList.list_checked[0];
@@ -269,7 +301,9 @@
 				if (index < iCheckFrom) YKList.checkBetween(index, iCheckTo);
 				if (index > iCheckFrom && index <iCheckTo) YKList.checkBetween(iCheckFrom, index);
 			},
-
+			getTimeStamp() {
+				return new Date().valueOf();
+			},
 		}
 	};
 </script>

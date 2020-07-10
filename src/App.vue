@@ -3,7 +3,7 @@
   <YKList msg="Welcome to Your Vue.js App" ref="ykList1" :settings="settings" :listData="listData">
     <template v-slot:YKListItems="YKListItems">
       <div onselectstart="return false;">
-        {{ YKListItems.item.name }},
+        {{ YKListItems.item.name }}, {{ YKListItems.index }}
       </div>
     </template>
   </YKList>
@@ -23,11 +23,16 @@
 				listData: [],
 				settings: {
 					id: "ykList1",
-					height: "600px",
-					custom_afterMouseDown: function (event, posInYKList) {
-						console.log(posInYKList)
+					height: "500px",
+					charSortBy: "name",
+					onListClick: function (event, itemInfo) {
+						console.log('click', itemInfo);
 					},
-					// custom_beforeMouseDown:function(){
+					// beforeMouseDown: function (event, itemInfo) {
+					// 	console.log(itemInfo);
+					// 	return true;
+					// },
+					// afterMouseDown:function(){
 					//     return false;
 					// },
 					horizontal: true
@@ -35,16 +40,19 @@
 			}
 		},
 		methods: {
+			getRandomName() {
+				let store = ['Marry', 'Jhon', 'Tom', 'Lily', 'Richard', 'Max', 'Cherry', 'Lee', 'Yang','Betty','Andy'];
+				return store[Math.floor(Math.random() * store.length)];
+			},
 			initTestData() {
 				let testtingArray = [];
 				for (let i = 0; i < 100; i++) {
 					testtingArray.push({
 						index: i,
-						name: "name" + i
+						name: this.getRandomName() + i
 					});
 				}
-				this.listData = testtingArray;
-				console.log("Testing Data Created.");
+				this.listData = testtingArray.sort((a, b) => (a.name)[0].charCodeAt() - (b.name)[0].charCodeAt()); //排序
 			}
 		},
 		mounted() {

@@ -73,8 +73,6 @@
 					document.body.appendChild(rect);
 				}
 
-				let itemInfo = HelperCtlListView.Helper.getItemInfoByMouse(YKList, event.pageX, event.pageY);
-
 				if (YKList.settings.custom_afterMouseDown != undefined) YKList.settings.custom_afterMouseDown(event, document.startPos); //If there were custom method
 			},
 			doMouseMove(event, callback) {
