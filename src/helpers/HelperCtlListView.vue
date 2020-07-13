@@ -1,3 +1,11 @@
+/**
+Copyright(c) 2020
+Author : YangKe
+E-mail : softshare@163.com
+
+If YKList is useful to you, please star me at github:
+https://github.com/softshare/YKList
+**/
 <script>
 	import HelperSysDOM from "@/helpers/HelperSysDOM";
 	import HelperDragSelect from "@/helpers/HelperDragSelect";
@@ -303,6 +311,19 @@
 			},
 			getTimeStamp() {
 				return new Date().valueOf();
+			},
+			getRandomName() {
+				let store = ['Marry', 'Jhon', 'Tom', 'Lily', 'Richard', 'Max', 'Cherry', 'Lee', 'Yang','Betty','Andy'];
+				return store[Math.floor(Math.random() * store.length)];
+			},
+			createTestData(iCount=200) {
+				let testtingArray = [];
+				for (let i = 0; i < iCount; i++) {
+					testtingArray.push({
+						name: this.getRandomName() + i
+					});
+				}
+				return testtingArray.sort((a, b) => (a.name)[0].charCodeAt() - (b.name)[0].charCodeAt()); //排序
 			},
 		}
 	};

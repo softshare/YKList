@@ -1,11 +1,24 @@
 <template>
-  <YKList msg="Welcome to Your Vue.js App" ref="ykList1" :settings="settings" :listData="listData">
-    <template v-slot:YKListItems="YKListItems">
-      <div onselectstart="return false;">
-        {{ YKListItems.item.name }}, {{ YKListItems.index }}
-      </div>
-    </template>
-  </YKList>
+  <div style="width:100%;">
+    <div style="clear:both;float:left;width:100%;">
+      <YKList ref="ykList1" :settings="settings" :listData="listData">
+        <template v-slot:YKListItems="YKListItems">
+          <div style="user-select: none;">
+            {{ YKListItems.item.name }}, {{ YKListItems.index }}
+          </div>
+        </template>
+      </YKList>
+    </div>
+    <div style="clear:both;float:left;width:100%;">
+      <button @click="resize" style="width: 100px; height:40px;">resize</button>
+      <button @click="append" style="width: 100px; height:40px;">append</button>
+      <button @click="remove" style="width: 100px; height:40px;">remove</button>
+      <button @click="toogleDirection" style="width: 100px; height:40px;">toogleDirection</button>
+      <button @click="setItemSize" style="width: 100px; height:40px;">setItemSize</button>
+      <button @click="sortData" style="width: 100px; height:40px;">sortData</button>
+      <button @click="getItems" style="width: 100px; height:40px;">getItems</button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -21,41 +34,44 @@
 				listData: [],
 				settings: {
 					id: "ykList1",
-					charSortBy: "name",
-					onListClick: function (event, itemInfo) {
-						console.log('click', itemInfo);
+					keyNaviBy: "name",
+					testingData: 100,
+					height: "400px",
+					itemSize: {
+						width: 128,
+						height: 64
 					},
-					// beforeMouseDown: function (event, itemInfo) {
-					// 	console.log(itemInfo);
-					// 	return true;
-					// },
-					// afterMouseDown:function(){
-					//     return false;
-					// },
+					onListClick: function (event, itemInfo) {
+						console.log(event, itemInfo);
+					},
 					horizontal: true
 				}
 			}
 		},
 		methods: {
-			getRandomName() {
-				let store = ['Marry', 'Jhon', 'Tom', 'Lily', 'Richard', 'Max', 'Cherry', 'Lee', 'Yang','Betty','Andy'];
-				return store[Math.floor(Math.random() * store.length)];
+			resize() {
+				this.$refs.ykList1.setHeight("800px");
 			},
-			initTestData() {
-				let testtingArray = [];
-				for (let i = 0; i < 200; i++) {
-					testtingArray.push({
-						index: i,
-						name: this.getRandomName() + i
-					});
-				}
-				this.listData = testtingArray.sort((a, b) => (a.name)[0].charCodeAt() - (b.name)[0].charCodeAt()); //排序
-			}
+			append() {
+				this.$refs.ykList1.appendItem({name: 'yykk', index: 888});
+			},
+			remove() {
+        this.$refs.ykList1.removeItems(this.$refs.ykList1.getSelectedItems());
+			},
+			toogleDirection() {
+				this.$refs.ykList1.setHorizontal(!this.$refs.ykList1.getHorizontal());
+			},
+			setItemSize() {
+				this.$refs.ykList1.setItemSize({width:200, height:36});
+			},
+			sortData() {
+				this.$refs.ykList1.sortData("name", !this.$refs.ykList1.isAscend());
+			},
+			getItems() {
+				console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
+			},
 		},
 		mounted() {
-			console.log("Sys Mounted.");
-			this.initTestData();
-			console.log(this.$refs.ykList1.list);
 		},
 	}
 </script>
@@ -70,7 +86,7 @@
     margin-top: 60px;
   }
 
-  body{
+  body {
     height: auto;
     min-height: 100%;
   }

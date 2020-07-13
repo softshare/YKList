@@ -1,3 +1,11 @@
+/**
+Copyright(c) 2020
+Author : YangKe
+E-mail : softshare@163.com
+
+If YKList is useful to you, please star me at github:
+https://github.com/softshare/YKList
+**/
 <script>
 	import HelperSysDOM from "@/helpers/HelperSysDOM";
 	import HelperCtlListView from "@/helpers/HelperCtlListView";
