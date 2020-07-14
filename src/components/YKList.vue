@@ -12,7 +12,7 @@ https://github.com/softshare/YKList
       ref="settings.id"
       tabindex="0"
       :id="settings.id"
-      :style="{height:styleListHeight}"
+      :style="{height:listHeightByUser}"
       @scroll="onScroll"
       @keydown="onListViewKeyDown($event)"
       @mousedown="onListViewContainerMouseDown($event)"
@@ -85,11 +85,11 @@ https://github.com/softshare/YKList
 				total_rows: 1, //数据的理论总行数
 				listWidth: 0, //列表宽
 				listHeight: 0, //列表高
+				listHeightByUser: 0, //用户设置的列表高
 				startIndex: 0, //虚拟显示的开始item
 				itemHot: -1, //当前的热点item
 				scrollTopValue: 0, //监测滚动条是否停止滚动的变量
 				MouseTime: 0, //Detect mouse click event
-				styleListHeight: '500px',
 				iLoadIconLP_Index: 0, //自动加载低优先级缩略图图标生成任务的索引值,
 				iListHeightDetect: 0,
 				sortAsend: true,
@@ -127,6 +127,12 @@ https://github.com/softshare/YKList
 				type: Array,
 				default: function () {
 					return []
+				},
+			},
+			height: {
+				type: String,
+				default: function () {
+					return "500px"
 				},
 			},
 		},
@@ -249,7 +255,6 @@ https://github.com/softshare/YKList
 			},
 			settingsCheck() {
 				if (this.settings.horizontal == undefined) this.settings.horizontal = false;
-				if (this.settings.height != undefined) this.styleListHeight = this.settings.height;
 			},
 			onScroll() {
 				// 根据滚动的距离，估算出这个滚动位置对应的数组序列，例如滚动100px，每条40px，对应第3条
@@ -534,7 +539,8 @@ https://github.com/softshare/YKList
 				}
 			},
 			setHeight(val) {
-				this.styleListHeight = val;
+				this.listHeightByUser = val;
+				this.refreshLayout();
 			},
 			setListData(data) {
 				if (this.settings.sortData != undefined) {
@@ -547,7 +553,7 @@ https://github.com/softshare/YKList
 					this.list = data;
 				}
 
-				this.list_checked = [];
+				this.unCheckAll();
 				this.list_charSort = [];
 				this.refreshLayout();
 				if (this.settings.keyNaviBy != undefined) {
@@ -609,12 +615,15 @@ https://github.com/softshare/YKList
 				this.settingsCheck();
 				this.refreshLayout();
 			},
+			height: function (valNew) {
+				this.setHeight(valNew);
+			},
 		},
 		created() {
 		},
 		mounted() {
 			this.settingsCheck();
-
+      if(this.height!=undefined) this.setHeight(this.height);
 			if (this.listData.length == 0 && this.settings.testingData != undefined) {
 				this.setListData(HelperCtlListView.Helper.createTestData(this.settings.testingData));
 			} else {

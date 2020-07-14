@@ -1,7 +1,7 @@
 <template>
   <div style="width:100%;">
     <div style="clear:both;float:left;width:100%;">
-      <YKList ref="ykList1" :settings="settings" :listData="listData">
+      <YKList ref="ykList1" :settings="settings" :listData="listData" :height="height">
         <template v-slot:YKListItems="YKListItems">
           <div style="user-select: none;">
             {{ YKListItems.item.name }}, {{ YKListItems.index }}
@@ -32,12 +32,12 @@
 		},
 		data() {
 			return {
+				height:"600px",
 				listData: [],
 				settings: {
 					id: "ykList1",
 					keyNaviBy: "name",
-					testingData: 10000,
-					height: "400px",
+					testingData: 100,
 					itemSize: {
 						width: 128,
 						height: 64
@@ -51,7 +51,8 @@
 		},
 		methods: {
 			resize() {
-				this.$refs.ykList1.setHeight("800px");
+				this.height = "800px";
+				// this.$refs.ykList1.setHeight("800px");
 			},
 			append() {
 				this.$refs.ykList1.appendItem({name: 'yklist123'});
