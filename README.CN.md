@@ -1,12 +1,15 @@
 # YKList
-一个简洁、强大、易用、高性能的VueJS列表控件。
+一个简洁、强大、易用、高性能的VueJS列表显示控件。
+如果您对YKList有更多功能需求或建议，请给我留言。
+如果您希望扩展和完善YKList，欢迎加入！
 
 # 关键特性
 
-1. 高性能. 支持海量数据的列表显示; 数据显示的瓶颈取决于计算机的内存大小和数据准备的时间；数据显示的效率接近操作系统原生的
-列表性能。
+1. 高性能.支持海量数据的列表显示; 数据显示的瓶颈取决于计算机的内存大小和数据准备的时间；数据显示的效率接近操作系统原生的
+列表性能。 
 
 2. 一个列表控件即可同时支持垂直列表和水平列表。例如：只需要在控件初始化时设置 "horizontal: true", 即可控制列表的滚动方向为水平。
+垂直、水平的显示可以随时切换，无须重新载入页面。
 
 3. 支持键盘导航。上、下、左、右箭头，以及page up, page down, home ,end可以方便的切换热点元素。
 
@@ -30,13 +33,14 @@
 8. 使用MIT许可证. 可随意应用于商业用途。    
 
 
+
 # 快速开始：
 ## 安装 
 
     npm install yklist
 
 ## 在项目中引用YKList    
-    
+
     import YKList from "yklist";
     import "yklist/dist/yklist.css";
 
@@ -86,11 +90,11 @@ horizontal|可选；设置是否为水平列表|horizontal:true
 
 ## 方法
 方法|说明|示例
---|:--:|--:
-setHeight|必须，唯一标识|id: "ykList1"
-setItemSize|可选; 在列表数据中选择一列启用键盘字符导航|keyNaviBy: "name"
-setHorizontal|可选；设置列表元素的尺寸|itemSize: {width:200,height:50}
-appendItem|可选；设置列表高度,单位必须为px|height: "600px"
-removeItems|可选；设置是否为水平列表|horizontal:true
-getItems|可选；设置是否为水平列表|horizontal:true
-getItem|可选；设置是否为水平列表|horizontal:true
+--|:--|--:
+setHeight|设置YKList的高度, 高度可以是px或者百分比| this.$refs.ykList1.setHeight("800px");
+setItemSize|设置列表元素的尺寸| this.$refs.ykList1.setItemSize({width:200, height:36});
+setHorizontal|设置列表是否水平滚动|this.$refs.ykList1.setHorizontal(!this.$refs.ykList1.getHorizontal());
+appendItem|添加一个元素到列表末尾|this.$refs.ykList1.appendItem({name: 'yklist123'});
+removeItems|删除列表元素，输入参数为数组|this.$refs.ykList1.removeItems(this.$refs.ykList1.getSelectedItems());
+getItemsData|获取一组元素对应的数据|console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
+getItemData|获取一个元素对应的数据|console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));

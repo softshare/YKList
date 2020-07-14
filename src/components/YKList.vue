@@ -438,14 +438,16 @@ https://github.com/softshare/YKList
 					}
 				}
 			},
-			getItem(index) {
+			getItemData(index) {
 				if (index >= 0 && index < this.list.length)
 					return this.list[index];
+				else
+					return null;
 			},
-			getItems(list) {
+			getItemsData(list) {
 				let retValue = [];
 				for(let i=0; i<list.length; i++){
-					retValue.push(this.getItem(list[i]));
+					retValue.push(this.getItemData(list[i]));
         }
 				return retValue;
 			},

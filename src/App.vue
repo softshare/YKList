@@ -17,6 +17,7 @@
       <button @click="setItemSize" style="width: 100px; height:40px;">setItemSize</button>
       <button @click="sortData" style="width: 100px; height:40px;">sortData</button>
       <button @click="getItems" style="width: 100px; height:40px;">getItems</button>
+      <button @click="getItem" style="width: 100px; height:40px;">getItem</button>
     </div>
   </div>
 </template>
@@ -35,7 +36,7 @@
 				settings: {
 					id: "ykList1",
 					keyNaviBy: "name",
-					testingData: 100,
+					testingData: 10000,
 					height: "400px",
 					itemSize: {
 						width: 128,
@@ -53,7 +54,7 @@
 				this.$refs.ykList1.setHeight("800px");
 			},
 			append() {
-				this.$refs.ykList1.appendItem({name: 'yykk', index: 888});
+				this.$refs.ykList1.appendItem({name: 'yklist123'});
 			},
 			remove() {
         this.$refs.ykList1.removeItems(this.$refs.ykList1.getSelectedItems());
@@ -68,7 +69,10 @@
 				this.$refs.ykList1.sortData("name", !this.$refs.ykList1.isAscend());
 			},
 			getItems() {
-				console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
+				console.log(this.$refs.ykList1.getItemsData(this.$refs.ykList1.getSelectedItems()));
+			},
+			getItem() {
+				console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
 			},
 		},
 		mounted() {
