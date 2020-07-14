@@ -47,7 +47,7 @@
 ## 简单示例：
 ```
 <template>
-  <YKList ref="ykList1" :settings="settings" :listData="listData">
+  <YKList ref="ykList1" :settings="settings" :listData="listData" height="600px">
     <template v-slot:YKListItems="YKListItems">
       <div style="user-select: none;">
         {{ YKListItems.item.name }}, {{ YKListItems.index }}
@@ -77,16 +77,21 @@ export default {
 
 # 使用说明
 
-## 初始化设置 - settings
-
+## 初始化设置  settings
 属性|说明|示例
 --|:--:|--:
 id|必须，唯一标识|id: "ykList1"
 keyNaviBy|可选; 在列表数据中选择一列启用键盘字符导航|keyNaviBy: "name"
 itemSize|可选；设置列表元素的尺寸|itemSize: {width:200,height:50}
-height|可选；设置列表高度,单位必须为px|height: "600px"
 horizontal|可选；设置是否为水平列表|horizontal:true
 
+## 初始化设置 - listData
+存储列表数据的json数组，例如：
+[{name:"name1", id:1},...{name:"namen", id:n}]
+
+
+## 初始化设置 - height
+设置列表高度，您可以在运行时调用setHeight方法，或者修改height的值动态改变列表高度
 
 ## 方法
 方法|说明|示例
@@ -98,3 +103,4 @@ appendItem|添加一个元素到列表末尾|this.$refs.ykList1.appendItem({name
 removeItems|删除列表元素，输入参数为数组|this.$refs.ykList1.removeItems(this.$refs.ykList1.getSelectedItems());
 getItemsData|获取一组元素对应的数据|console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
 getItemData|获取一个元素对应的数据|console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
+setListData|动态改变列表数据|this.$refs.ykList1.setListData(newListData);

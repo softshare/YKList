@@ -44,7 +44,7 @@ If you want to expand and improve YKList, welcome to join!
 ## simple example
 ```
 <template>
-  <YKList ref="ykList1" :settings="settings" :listData="listData">
+  <YKList ref="ykList1" :settings="settings" :listData="listData" height="600px">
     <template v-slot:YKListItems="YKListItems">
       <div style="user-select: none;">
         {{ YKListItems.item.name }}, {{ YKListItems.index }}
@@ -74,7 +74,7 @@ export default {
 
 # Instructions
 
-## Initial settings
+## Component Initial - settings
 
 Properties|Description|Example
 --|:--:|--:
@@ -84,6 +84,12 @@ itemSize|optional; set the size of the list elements|itemSize: {width:200,height
 height|optional; set the height of the list, the unit must be px or percentage|height: "600px"
 horizontal|optional; set whether it is a horizontal list|horizontal:true
 
+## Component Initial - listData
+the json object array which stored the list data，e.g.：
+[{name:"name1", id:1},...{name:"namen", id:n}]
+
+## Component Initial - height
+set up the list height, you may call the method 'setHeight' or modify the height property at runtime.
 
 ## Method
 Method|Description|Example
@@ -95,5 +101,6 @@ appendItem|Add an element to the end of the list|this.$refs.ykList1.appendItem({
 removeItems|Remove list elements, the input parameter is an array||this.$refs.ykList1.removeItems(this.$refs.ykList1.getSelectedItems());
 getItemsData|Get a group of data corresponding to a set of elementsv|console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
 getItemData|Get one data corresponding to a set of elements|console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
+setListData|change all the list data at runtime|this.$refs.ykList1.setListData(newListData);
 
 
