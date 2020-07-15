@@ -92,8 +92,10 @@ https://github.com/softshare/YKList
                 scrollTopValue: 0, //监测滚动条是否停止滚动的变量
                 MouseTime: 0, //Detect mouse click event
                 iLoadIconLP_Index: 0, //自动加载低优先级缩略图图标生成任务的索引值,
-                iListHeightDetect: 0,
+                iListResizeDetect_Height: 0,
+                iListResizeDetect_Width: 0,
                 sortAsend: true,
+                itemAtMouse: null,
             };
         },
         props: {
@@ -112,7 +114,7 @@ https://github.com/softshare/YKList
                             },
                         },
                         sortData: 0, //1 : ascend, 2: descend
-                        beforeMouseDown: function (event, itemInfo) {
+                        checkBeforeDragSelection: function (event, itemInfo) {
                             return true;
                         },
                         onListClick: function (event, itemInfo) {
@@ -234,9 +236,12 @@ https://github.com/softshare/YKList
         },
         methods: {
             refreshLayout() {//计算行、列的数量；垂直、水平的列表，计算方式不同
+                console.log('refresh layout begin.');
+
                 this.listWidth = this.dom.offsetWidth;
                 this.listHeight = this.dom.offsetHeight;
-                this.iListHeightDetect = this.listHeight;
+                this.iListResizeDetect_Height = this.listHeight;
+                this.iListResizeDetect_Width = this.listWidth;
                 if (this.horizontal) {
                     this.total_rows = Math.floor((this.listHeight - this.defaultScrollBarSize) / this.itemSize_height);
                     if (this.total_rows <= 0) this.total_rows = 1;
@@ -256,6 +261,9 @@ https://github.com/softshare/YKList
                     this.total_rows = Math.ceil(this.list.length / this.total_cols);
                     if (this.dom.scrollTop > 1) this.dom.scrollTop = this.dom.scrollTop - 1; //fix the wrong scroll offset
                 }
+
+                console.log('refresh layout end.');
+                console.log(this.list_checked);
             },
             settingsCheck() {
                 if (this.settings.horizontal == undefined) this.settings.horizontal = false;
@@ -320,45 +328,64 @@ https://github.com/softshare/YKList
                     event.button == 0
                 ) {
                     //鼠标左键按下，弹起时间不超过?毫秒，视为单击
-                    var itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
+                    var itemInfo = HelperCtlListView.Helper.getItemInfoByMouse(
                         this,
                         event.pageX,
                         event.pageY
                     );
-                    if (itemAtMouse == null) {
+                    if (itemInfo == null) {
                         this.unCheckAll();
                         this.clearHotItem();
                     }
-                    if (this.settings.onListClick != undefined) {
-                        this.settings.onListClick(event, itemAtMouse);
-                    }
+                    // if (this.settings.onListClick != undefined) {
+                    //     this.settings.onListClick(event, itemInfo);
+                    // }
+                    this.$emit("onListClick",event, itemInfo);
+
                 }
             },
             onListViewContainerDoubleClick(event) {
-                var itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
+                var itemInfo = HelperCtlListView.Helper.getItemInfoByMouse(
                     this,
                     event.pageX,
                     event.pageY
                 );
-                if (this.settings.onListDblClick != undefined) {
-                    this.settings.onListDblClick(event, itemAtMouse);
-                }
+                // if (this.settings.onListDblClick != undefined) {
+                //     this.settings.onListDblClick(event, itemInfo);
+                // }
+                this.$emit("onListDblClick",event, itemInfo);
             },
             onLayoutResized() {
                 this.refreshLayout();
             },
             on_dragSelect_mouseDown(event) {
                 if (event.shiftKey || event.ctrlKey) return; //如果此时用户按下了shift或者ctrl，可能是在进行鼠标选择，不能处理拖拽
-                var itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
+                let itemAtMouse = HelperCtlListView.Helper.getItemInfoByMouse(
                     this,
                     event.pageX,
                     event.pageY
                 );
-                if (this.settings.beforeMouseDown != undefined && !this.settings.beforeMouseDown(event, itemAtMouse)) return;
+                if (this.settings.checkBeforeDragSelection != undefined && !this.settings.checkBeforeDragSelection(event, itemAtMouse)) return;
                 HelperDragSelect.Helper.doMouseDown(event, this);
             },
             on_dragSelect_mouseMove(event) {
                 let vmobj = this;
+                let itemInfo = HelperCtlListView.Helper.getItemInfoByMouse(
+                    this,
+                    event.pageX,
+                    event.pageY
+                );
+                this.$emit("onMouseMove",itemInfo);
+
+                let indexBefore = -1;
+                let indexNow = -1;
+                if(this.itemAtMouse!=null) indexBefore=this.itemAtMouse.index;
+                if(itemInfo!=null) indexNow=itemInfo.index;
+                if (indexBefore!=indexNow) {
+                    this.itemAtMouse = itemInfo;
+                    this.$emit("onItemAtMouseChanged",itemInfo);
+                }
+
                 HelperDragSelect.Helper.doMouseMove(event, function (e) {
                     HelperCtlListView.Helper.checkSelectRect(vmobj);
                 });
@@ -390,7 +417,8 @@ https://github.com/softshare/YKList
 
             },
             tm_autoScroll() { //the timer of auto scrolling
-                if (this.dom.offsetHeight != this.iListHeightDetect) { //check the change of list height
+                //check the change of list height, this is very import
+                if (this.dom.offsetHeight != this.iListResizeDetect_Height || this.dom.offsetWidth != this.iListResizeDetect_Width) {
                     this.refreshLayout();
                 }
 
@@ -612,6 +640,9 @@ https://github.com/softshare/YKList
             },
             isAscend() {
                 return this.sortAsend;
+            },
+            getItemInfoOfMouse(){
+                return this.itemAtMouse;
             }
         },
         watch: {
@@ -681,7 +712,6 @@ https://github.com/softshare/YKList
         background-color: rgba(72, 179, 255, 0.5);
     }
 
-    /*拖拽选择框的背景样式*/
     #YKList-dragselect-rect {
         background: rgba(72, 179, 255, 0.44);
         z-index: 99;
