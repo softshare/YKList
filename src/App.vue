@@ -45,7 +45,7 @@
 					onListClick: function (event, itemInfo) {
 						console.log(event, itemInfo);
 					},
-					horizontal: true
+					// horizontal: true
 				}
 			}
 		},

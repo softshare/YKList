@@ -99,7 +99,7 @@ https://github.com/softshare/YKList
 					};
 					this.updateRect(); //update the rect of selection
 					HelperCtlListView.Helper.checkSelectRect(this.YKList);
-				}
+                }
 			},
 			updateRect() {
 				let rect = document.getElementById("YKList-dragselect-rect"),
