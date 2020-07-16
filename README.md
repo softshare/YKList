@@ -66,7 +66,7 @@ export default {
 			return {
 				settings: {
 					id: "ykList1",
-                    charSortBy: "name",
+                    keyNaviBy: "name",
 			}
 		},
 }		
@@ -74,7 +74,7 @@ export default {
 
 # Instructions
 
-## Component Initial - settings
+## Property - settings
 
 Properties|Description|Example
 --|:--:|--:
@@ -84,11 +84,11 @@ itemSize|optional; set the size of the list elements|itemSize: {width:200,height
 height|optional; set the height of the list, the unit must be px or percentage|height: "600px"
 horizontal|optional; set whether it is a horizontal list|horizontal:true
 
-## Component Initial - listData
+## Property - listData
 the json object array which stored the list data，e.g.：
 [{name:"name1", id:1},...{name:"namen", id:n}]
 
-## Component Initial - height
+## Property - height
 set up the list height, you may call the method 'setHeight' or modify the height property at runtime.
 
 ## Method
@@ -104,3 +104,62 @@ getItemData|Get one data corresponding to a set of elements|console.log(this.$re
 setListData|change all the list data at runtime|this.$refs.ykList1.setListData(newListData);
 
 
+### Event
++ onListClick(event, itemInfo) 
+Triggered when the list is clicked, used to obtain the coordinates/list element  under the mouse.
+E.g:
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onListClick="onListClick"
+>
+....
+onListClick(event, itemInfo) {
+    console.log("onListClick", event, itemInfo);
+},
+
+```
+
++ onListDblClick(event, itemInfo)
+Triggered when the list is double clicked, used to obtain the coordinates/list element  under the mouse.
+E.g:
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onListDblClick="onListDblClick"
+>
+....
+onListDblClick(event, itemInfo) {
+    console.log("onListDblClick", event, itemInfo);
+},
+
+```
+
++ onMouseMove(event, itemInfo) 
+Detect the mouse position and elements during the mouse movement
+E.g:
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onMouseMove="onMouseMove"
+>
+....
+onMouseMove(event, itemInfo) {
+    console.log("onMouseMove", event, itemInfo);
+},
+
+```
+
+
+
++ onItemUnderMouseChanged(itemInfo)
+When moving mouse within list, it will detect the list elements continuously under 
+the mouse coordinates. If the detected element is different from the last detection 
+result, this event will be triggered
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onItemUnderMouseChanged="onItemUnderMouseChanged"
+>
+....
+onItemUnderMouseChanged( itemInfo) {
+    console.log("onItemUnderMouseChanged", itemInfo);
+},
+
+```

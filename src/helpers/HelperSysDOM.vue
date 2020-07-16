@@ -1,6 +1,6 @@
 /**
 Copyright(c) 2020
-Author : YangKe
+Author : Yang Ke
 E-mail : softshare@163.com
 
 If YKList is useful to you, please star me at github:

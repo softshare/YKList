@@ -1,6 +1,6 @@
 /**
 Copyright(c) 2020
-Author : YangKe
+Author : Yang Ke
 E-mail : softshare@163.com
 
 If YKList is useful to you, please star me at github:
@@ -236,8 +236,6 @@ https://github.com/softshare/YKList
         },
         methods: {
             refreshLayout() {//计算行、列的数量；垂直、水平的列表，计算方式不同
-                console.log('refresh layout begin.');
-
                 this.listWidth = this.dom.offsetWidth;
                 this.listHeight = this.dom.offsetHeight;
                 this.iListResizeDetect_Height = this.listHeight;
@@ -261,9 +259,7 @@ https://github.com/softshare/YKList
                     this.total_rows = Math.ceil(this.list.length / this.total_cols);
                     if (this.dom.scrollTop > 1) this.dom.scrollTop = this.dom.scrollTop - 1; //fix the wrong scroll offset
                 }
-
-                console.log('refresh layout end.');
-                console.log(this.list_checked);
+                HelperDragSelect.Helper.init(this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
             },
             settingsCheck() {
                 if (this.settings.horizontal == undefined) this.settings.horizontal = false;
@@ -383,7 +379,7 @@ https://github.com/softshare/YKList
                 if(itemInfo!=null) indexNow=itemInfo.index;
                 if (indexBefore!=indexNow) {
                     this.itemAtMouse = itemInfo;
-                    this.$emit("onItemAtMouseChanged",itemInfo);
+                    this.$emit("onItemUnderMouseChanged",itemInfo);
                 }
 
                 HelperDragSelect.Helper.doMouseMove(event, function (e) {
@@ -643,6 +639,12 @@ https://github.com/softshare/YKList
             },
             getItemInfoOfMouse(){
                 return this.itemAtMouse;
+            },
+            getPageCoordOfItem(itemInfo){
+                return HelperCtlListView.Helper.getPageCoord(this, itemInfo);
+            },
+            getScreenCoord(itemInfo){
+                return HelperCtlListView.Helper.getScreenCoord(this, itemInfo);
             }
         },
         watch: {

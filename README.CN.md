@@ -69,7 +69,7 @@ export default {
 			return {
 				settings: {
 					id: "ykList1",
-                    charSortBy: "name",
+                    keyNaviBy: "name",
 			}
 		},
 }		
@@ -84,11 +84,11 @@ id|必须，唯一标识|id: "ykList1"
 keyNaviBy|可选; 在列表数据中选择一列启用键盘字符导航|keyNaviBy: "name"
 itemSize|可选；设置列表元素的尺寸|itemSize: {width:200,height:50}
 horizontal|可选；设置是否为水平列表|horizontal:true
-checkBeforeDragSelection|可选；在鼠标拖动选择前进行检查|
+checkBeforeDragSelection|可选, 自定义一个方法，在鼠标拖动选择前进行检查，如果方法返回false则不允许拖动选择|checkBeforeDragSelection: function (event, itemInfo){return false;}
 
 ## 初始化设置 - listData
 存储列表数据的json数组，例如：
-[{name:"name1", id:1},...{name:"namen", id:n}]
+[{name:"name-1", id:1},...{name:"name-n", id:n}]
 
 
 ## 初始化设置 - height
@@ -109,7 +109,7 @@ setListData|动态改变列表数据|this.$refs.ykList1.setListData(newListData)
 
 ### 事件
 + onListClick(event, itemInfo) 
-列表被点击时触发，用于获取鼠标点击位置下的坐标、列表元素信息
+列表被单击时触发，用于获取鼠标点击位置下的坐标、列表元素信息
 例如：
 ```
 <YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
@@ -122,8 +122,23 @@ onListClick(event, itemInfo) {
 
 ```
 
++ onListDblClick(event, itemInfo)
+列表被双击时触发，用于获取鼠标点击位置下的坐标、列表元素信息
+例如：
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onListDblClick="onListDblClick"
+>
+....
+onListDblClick(event, itemInfo) {
+    console.log("onListDblClick", event, itemInfo);
+},
+
+```
+
+
 + onMouseMove(event, itemInfo) 
-在鼠标按下前触发，应返回true/false, 以便控制是否需要执行后续的鼠标拖拽框选
+鼠标移动过程中，对鼠标位置、元素进行探测
 例如：
 ```
 <YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
@@ -136,28 +151,16 @@ onMouseMove(event, itemInfo) {
 
 ```
 
-+ onListDblClick(event, itemInfo)
-鼠标移动过程中，对鼠标位置下的节点进行探测
-```
-<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
-              @onListDblClick="onListDblClick"
->
-....
-onListDblClick(event, itemInfo) {
-    console.log("onListDblClick", event, itemInfo);
-},
 
-```
-
-+ onItemAtMouseChanged(event, itemInfo)
++ onItemUnderMouseChanged(itemInfo)
 鼠标在列表范围内移动时，会不断探测鼠标坐标下的列表元素，如果探测到的元素和上一次探测的结果不一样，则触发本事件
 ```
 <YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
-              @onItemAtMouseChanged="onItemAtMouseChanged"
+              @onItemUnderMouseChanged="onItemUnderMouseChanged"
 >
 ....
 onItemAtMouseChanged( itemInfo) {
-    console.log("onItemAtMouseChanged", itemInfo);
+    console.log("onItemUnderMouseChanged", itemInfo);
 },
 
 ```

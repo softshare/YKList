@@ -1,6 +1,6 @@
 /**
 Copyright(c) 2020
-Author : YangKe
+Author : Yang Ke
 E-mail : softshare@163.com
 
 If YKList is useful to you, please star me at github:
@@ -14,7 +14,7 @@ https://github.com/softshare/YKList
 		Helper: {
 			RectDragSelectID: "YKList-dragselect-rect",
 			rectSelection_beginPos: undefined, //矩形框选择的开始点，记录开始item的row,col索引
-      YKList: undefined,  // The Active YKList Instance
+			YKList: undefined,  // The Active YKList Instance
 			viewDomInfo: {
 				offset: undefined,
 				width: undefined,
@@ -99,7 +99,7 @@ https://github.com/softshare/YKList
 					};
 					this.updateRect(); //update the rect of selection
 					HelperCtlListView.Helper.checkSelectRect(this.YKList);
-                }
+				}
 			},
 			updateRect() {
 				let rect = document.getElementById("YKList-dragselect-rect"),
@@ -115,7 +115,7 @@ https://github.com/softshare/YKList
 				rect.style.width = width;
 				rect.style.height = height;
 				rect.style.left = left + 'px';
-				rect.style.top = top+ 'px';
+				rect.style.top = top + 'px';
 			}
 		}
 	};

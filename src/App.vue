@@ -2,7 +2,7 @@
   <div style="width:100%;">
     <div style="clear:both;float:left;width:100%;">
       <YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
-              @onItemAtMouseChanged="onItemAtMouseChanged"
+              @onItemUnderMouseChanged="onItemUnderMouseChanged"
               @onListClick="onListClick"
               @onListDblClick="onListDblClick"
       >
@@ -49,7 +49,7 @@
 					checkBeforeDragSelection: function (event, itemInfo) {
 						return true;
 					},
-					// horizontal: true
+					horizontal: true
 				}
 			}
 		},
@@ -79,8 +79,10 @@
 			getItem() {
 				console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
 			},
-			onItemAtMouseChanged(itemInfo) {
-				console.log("onItemAtMouseChanged, index:", itemInfo == null ? null : itemInfo.index);
+			onItemUnderMouseChanged(itemInfo) {
+				// console.log("onItemUnderMouseChanged, index:", itemInfo == null ? null : itemInfo.index, );
+        if(itemInfo!=null)  console.log(this.$refs.ykList1.getPageCoordOfItem(itemInfo));
+        if(itemInfo!=null)  console.log(this.$refs.ykList1.getScreenCoord(itemInfo));
 			},
 			onListClick(event, itemInfo) {
 				console.log("onListClick", event, itemInfo);

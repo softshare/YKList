@@ -1,6 +1,6 @@
 /**
 Copyright(c) 2020
-Author : YangKe
+Author : Yang Ke
 E-mail : softshare@163.com
 
 If YKList is useful to you, please star me at github:
@@ -23,26 +23,58 @@ https://github.com/softshare/YKList
 				let mouseInListViewY = mouseY - offsetTop; //Get the relative position of mouse: y
 
 				let index = 0; // item index
-				let itemX = 0;
-				let itemY = 0;
+				let xIndex = 0;
+				let yIndex = 0;
+
 				if (YKList.horizontal) {
-					itemX = Math.ceil(( domYKList.scrollLeft + mouseInListViewX ) / YKList.itemSize_width); //水平方向的item;
-					itemY = Math.ceil(mouseInListViewY / YKList.itemSize_height);
-					if (itemX > YKList.total_cols) return null;
-					if (itemY > YKList.total_rows) return null;
-					index = (itemX-1) * YKList.total_rows + (itemY-1);
-					if (index >= YKList.list.length ) return null;
+					xIndex = Math.ceil(( domYKList.scrollLeft + mouseInListViewX ) / YKList.itemSize_width); //水平方向的item;
+					yIndex = Math.ceil(mouseInListViewY / YKList.itemSize_height);
+					if (xIndex > YKList.total_cols) return null;
+					if (yIndex > YKList.total_rows) return null;
+					index = ( xIndex - 1 ) * YKList.total_rows + ( yIndex - 1 );
+					if (index >= YKList.list.length || index < 0) return null;
+
 				} else {
-					itemX = Math.ceil(mouseInListViewX / YKList.itemSize_width);
-					itemY = Math.ceil(( domYKList.scrollTop + mouseInListViewY ) / YKList.itemSize_height); //水平方向的item;
-					if (itemX > YKList.total_cols) return null;
-					if (itemY > YKList.total_rows) return null;
-					index =(itemY-1) * YKList.total_cols + (itemX-1);
-					if (index>= YKList.list.length ) return null;
+					xIndex = Math.ceil(mouseInListViewX / YKList.itemSize_width);
+					yIndex = Math.ceil(( domYKList.scrollTop + mouseInListViewY ) / YKList.itemSize_height); //水平方向的item;
+					if (xIndex > YKList.total_cols) return null;
+					if (yIndex > YKList.total_rows) return null;
+					index = ( yIndex - 1 ) * YKList.total_cols + ( xIndex - 1 );
+					if (index >= YKList.list.length || index < 0) return null;
+
 				}
 				return {
-					itemX, itemY, index
+					index, xIndex, yIndex, mouseX, mouseY
 				}
+			},
+			getPageCoord(YKList, itemInfo) {
+				if(itemInfo==null) return null;
+				let itemX = 0;
+				let itemY = 0;
+				let xIndex = itemInfo.xIndex;
+				let yIndex = itemInfo.yIndex;
+
+				if (YKList.horizontal) {
+					itemX = ( xIndex - 1 ) * YKList.itemSize_width - YKList.dom.scrollLeft;
+					itemY = ( yIndex - 1 ) * YKList.itemSize_height;
+				} else {
+					itemX = ( xIndex - 1 ) * YKList.itemSize_width;
+					itemY = ( yIndex - 1 ) * YKList.itemSize_height - YKList.dom.scrollTop;
+				}
+				return {
+					x: itemX,
+          y: itemY
+        }
+			},
+			getScreenCoord(YKList, itemInfo) {
+				if(itemInfo==null) return null;
+				let pageCoord = this.getPageCoord(YKList, itemInfo)
+        let x = pageCoord.x + HelperSysDOM.Helper.getElementLeft(YKList.dom);
+        let y = pageCoord.y + HelperSysDOM.Helper.getElementTop(YKList.dom);
+				return {
+					x,
+          y
+        }
 			},
 			checkSelectRect(YKList) {
 				let pBegin = HelperDragSelect.Helper.getPos_begin();
@@ -246,22 +278,22 @@ https://github.com/softshare/YKList
 			},
 			hotItem_setByKey(YKList, keyCode, isShift) {
 				if (YKList.list.length < 0) return; //确定有数据
-				if (YKList.itemHot == -1 ){
+				if (YKList.itemHot == -1) {
 					YKList.checkSet(0, true);
 					YKList.setHotItem(0);
 					return;
 				}
 				let newID = 0; //37-左,38-上,39-右,40-下
-        let pageSize = 0;
-        let coordHot = this.getItemCoord(YKList,YKList.itemHot);
+				let pageSize = 0;
+				let coordHot = this.getItemCoord(YKList, YKList.itemHot);
 				if (YKList.horizontal) {
-					pageSize = YKList.total_rows * (YKList.visible_cols-1);
+					pageSize = YKList.total_rows * ( YKList.visible_cols - 1 );
 					if (keyCode == 38) newID = YKList.itemHot - 1;
 					if (keyCode == 37) newID = YKList.itemHot - YKList.total_rows;
 					if (keyCode == 40) newID = YKList.itemHot + 1;
 					if (keyCode == 39) newID = YKList.itemHot + YKList.total_rows;
 				} else {
-					pageSize = YKList.total_cols * (YKList.visible_rows-1);
+					pageSize = YKList.total_cols * ( YKList.visible_rows - 1 );
 					if (keyCode == 37) newID = YKList.itemHot - 1;
 					if (keyCode == 38) newID = YKList.itemHot - YKList.total_cols;
 					if (keyCode == 39) newID = YKList.itemHot + 1;
@@ -307,23 +339,23 @@ https://github.com/softshare/YKList
 				let iCheckTo = YKList.list_checked[YKList.list_checked.length - 1];
 				if (index > iCheckTo) YKList.checkBetween(iCheckFrom, index);
 				if (index < iCheckFrom) YKList.checkBetween(index, iCheckTo);
-				if (index > iCheckFrom && index <iCheckTo) YKList.checkBetween(iCheckFrom, index);
+				if (index > iCheckFrom && index < iCheckTo) YKList.checkBetween(iCheckFrom, index);
 			},
 			getTimeStamp() {
 				return new Date().valueOf();
 			},
 			getRandomName() {
-				let store = ['Marry', 'Jhon', 'Tom', 'Lily', 'Richard', 'Max', 'Cherry', 'Lee', 'Yang','Betty','Andy'];
+				let store = ['Marry', 'Jhon', 'Tom', 'Lily', 'Richard', 'Max', 'Cherry', 'Lee', 'Yang', 'Betty', 'Andy'];
 				return store[Math.floor(Math.random() * store.length)];
 			},
-			createTestData(iCount=200) {
+			createTestData(iCount = 200) {
 				let testtingArray = [];
 				for (let i = 0; i < iCount; i++) {
 					testtingArray.push({
 						name: this.getRandomName() + i
 					});
 				}
-				return testtingArray.sort((a, b) => (a.name)[0].charCodeAt() - (b.name)[0].charCodeAt()); //排序
+				return testtingArray.sort((a, b) => ( a.name )[0].charCodeAt() - ( b.name )[0].charCodeAt()); //排序
 			},
 		}
 	};
