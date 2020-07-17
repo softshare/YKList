@@ -105,6 +105,7 @@ removeItems|删除列表元素，输入参数为数组|this.$refs.ykList1.remove
 getItemsData|获取一组元素对应的数据|console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
 getItemData|获取一个元素对应的数据|console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
 setListData|动态改变列表数据|this.$refs.ykList1.setListData(newListData);
+getSelectedItems|获取被选中的元素数组|var selectedItems=this.$refs.ykList1.getSelectedItems();
 
 
 ### 事件
@@ -159,8 +160,22 @@ onMouseMove(event, itemInfo) {
               @onItemUnderMouseChanged="onItemUnderMouseChanged"
 >
 ....
-onItemAtMouseChanged( itemInfo) {
+onItemAtMouseChanged(itemInfo) {
     console.log("onItemUnderMouseChanged", itemInfo);
+},
+
+```
+
+
++ onSelectedChange(valNew)
+当存储已选中元素的索引的数组发生改变时触发
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onSelectedChange="onSelectedChange"
+>
+....
+onSelectedChange(valNew) {
+    console.log("onSelectedChange", valNew);
 },
 
 ```

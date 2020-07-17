@@ -5,6 +5,8 @@
               @onItemUnderMouseChanged="onItemUnderMouseChanged"
               @onListClick="onListClick"
               @onListDblClick="onListDblClick"
+              @onSelectedChange="onSelectedChange"
+              @onScrollStopped="onScrollStopped"
       >
         <template v-slot:YKListItems="YKListItems">
           <div style="user-select: none;">
@@ -89,6 +91,13 @@
 			},
 			onListDblClick(event, itemInfo) {
 				console.log("onListDblClick", event, itemInfo);
+			},
+			onSelectedChange(valNew) {
+				console.log("onSelectedChange", valNew);
+			},
+			onScrollStopped(scrollPos) {
+				console.log("onScrollStopped", scrollPos);
+				console.log("getVisibleItems()", this.$refs.ykList1.getVisibleItems());
 			}
 		},
 		computed: {

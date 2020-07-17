@@ -83,6 +83,7 @@ keyNaviBy|optional; select the property of list data to enable keyboard characte
 itemSize|optional; set the size of the list elements|itemSize: {width:200,height:50}
 height|optional; set the height of the list, the unit must be px or percentage|height: "600px"
 horizontal|optional; set whether it is a horizontal list|horizontal:true
+checkBeforeDragSelection|optional, customize a method to check before dragging selection, if the method returns false then drag selection is not allowed|checkBeforeDragSelection: function (event, itemInfo){return false;}
 
 ## Property - listData
 the json object array which stored the list data，e.g.：
@@ -102,6 +103,7 @@ removeItems|Remove list elements, the input parameter is an array||this.$refs.yk
 getItemsData|Get a group of data corresponding to a set of elementsv|console.log(this.$refs.ykList1.getItems(this.$refs.ykList1.getSelectedItems()));
 getItemData|Get one data corresponding to a set of elements|console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
 setListData|change all the list data at runtime|this.$refs.ykList1.setListData(newListData);
+getSelectedItems|Get the selected element array|var selectedItems=this.$refs.ykList1.getSelectedItems();
 
 
 ### Event
@@ -160,6 +162,19 @@ result, this event will be triggered
 ....
 onItemUnderMouseChanged( itemInfo) {
     console.log("onItemUnderMouseChanged", itemInfo);
+},
+
+```
+
++ onSelectedChange(valNew)
+Fires when the array storing the index of the selected element changes
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onSelectedChange="onSelectedChange"
+>
+....
+onSelectedChange(valNew) {
+    console.log("onSelectedChange", valNew);
 },
 
 ```

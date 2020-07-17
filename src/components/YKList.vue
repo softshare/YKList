@@ -89,13 +89,15 @@ https://github.com/softshare/YKList
                 listHeightByUser: 0, //用户设置的列表高
                 startIndex: 0, //虚拟显示的开始item
                 itemHot: -1, //当前的热点item
-                scrollTopValue: 0, //监测滚动条是否停止滚动的变量
+                scrollLastValue: 0, //监测滚动条是否停止滚动的变量
                 MouseTime: 0, //Detect mouse click event
                 iLoadIconLP_Index: 0, //自动加载低优先级缩略图图标生成任务的索引值,
                 iListResizeDetect_Height: 0,
                 iListResizeDetect_Width: 0,
                 sortAsend: true,
                 itemAtMouse: null,
+                tmCounters : 0, //the timer counters
+                bScrolling: false, //the tag of whether the list is scrolling
             };
         },
         props: {
@@ -158,7 +160,7 @@ https://github.com/softshare/YKList
             visible_cols() {  //虚拟滚动数据的显示总列数
                 let v = 0;
                 if (this.horizontal) {
-                    v = Math.ceil(this.listWidth / this.itemSize_width) + 0; //+1可以增加滚动平滑度
+                    v = Math.ceil(this.listWidth / this.itemSize_width) + 0;
                 } else {
                     v = Math.floor((this.listWidth - this.defaultScrollBarSize) / this.itemSize_width);
                 }
@@ -170,7 +172,7 @@ https://github.com/softshare/YKList
                 if (this.horizontal) {
                     v = Math.floor((this.listHeight - this.defaultScrollBarSize) / this.itemSize_height);
                 } else {
-                    v = Math.ceil((this.listHeight) / this.itemSize_height) + 1; //+1可以增加滚动平滑度
+                    v = Math.ceil((this.listHeight) / this.itemSize_height) + 1; //+1 可以增加滚动平滑度
                 }
                 if (v <= 0) v = 1;
                 return v;
@@ -266,6 +268,8 @@ https://github.com/softshare/YKList
             },
             onScroll() {
                 // 根据滚动的距离，估算出这个滚动位置对应的数组序列，例如滚动100px，每条40px，对应第3条
+                this.bScrolling = true;
+                this.$emit("onScrolling", );
                 if (this.horizontal) {
                     let scrollLeft = this.dom.scrollLeft;
                     let colStartIndex = Math.floor(scrollLeft / this.itemSize_width)
@@ -273,8 +277,10 @@ https://github.com/softshare/YKList
                     if (colStartIndex >= maxStartIndexLimit) colStartIndex = maxStartIndexLimit //水平滚动条会自动延展，要检查超限
                     if (colStartIndex < 0) colStartIndex = 0
                     this.startIndex = colStartIndex
+                    this.scrollLastValue = scrollLeft;
                 } else {
                     let scrollTop = this.dom.scrollTop;
+                    this.scrollLastValue = scrollTop;
                     this.startIndex =
                         Math.floor(scrollTop / this.itemSize_height) *
                         this.total_cols; //当前是第几个item，而不是第几行
@@ -413,7 +419,19 @@ https://github.com/softshare/YKList
 
             },
             tm_autoScroll() { //the timer of auto scrolling
-                //check the change of list height, this is very import
+                this.tmCounters++;
+
+                if(this.tmCounters % 2==0){ //each interval *2, check the scroll state
+                    let scrollPos=0;
+                    this.horizontal ? scrollPos = this.dom.scrollLeft : scrollPos = this.dom.scrollTop;
+                    let bScrollingNow  = scrollPos != this.scrollLastValue;
+                    if(this.bScrolling && !bScrollingNow){
+                        this.$emit("onScrollStopped", scrollPos);
+                    }
+                    this.bScrolling = bScrollingNow;
+                }
+
+                //check the change of list height, very import
                 if (this.dom.offsetHeight != this.iListResizeDetect_Height || this.dom.offsetWidth != this.iListResizeDetect_Width) {
                     this.refreshLayout();
                 }
@@ -645,6 +663,16 @@ https://github.com/softshare/YKList
             },
             getScreenCoord(itemInfo){
                 return HelperCtlListView.Helper.getScreenCoord(this, itemInfo);
+            },
+            getVisibleItems() { // get visible items index of list
+                var indexStart = this.startIndex;
+                var indexStop =
+                    this.startIndex + (this.visible_rows - 1) * this.visible_cols - 1;
+                if (indexStop >= this.list.length) indexStop = this.list.length - 1;
+                return { indexStart, indexStop};
+            },
+            getListDOM(){
+                return this.dom;
             }
         },
         watch: {
@@ -654,6 +682,10 @@ https://github.com/softshare/YKList
             },
             height: function (valNew) {
                 this.setHeight(valNew);
+            },
+            list_checked: function (valNew) {
+                this.scrollLastValue = 0;
+                this.$emit("onSelectedChange",valNew);
             },
         },
         created() {
