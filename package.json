@@ -1,6 +1,6 @@
 {
   "name": "yklist",
-  "version": "1.0.13",
+  "version": "1.0.17",
   "private": false,
   "main": "./dist/yklist.common.js",
   "license": "MIT",

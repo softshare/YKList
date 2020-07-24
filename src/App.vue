@@ -7,6 +7,7 @@
               @onListDblClick="onListDblClick"
               @onSelectedChange="onSelectedChange"
               @onScrollStopped="onScrollStopped"
+              @onContextMenu="onContextMenu"
       >
         <template v-slot:YKListItems="YKListItems">
           <div style="user-select: none;">
@@ -88,6 +89,9 @@
 			},
 			onListClick(event, itemInfo) {
 				console.log("onListClick", event, itemInfo);
+			},
+			onContextMenu(event, itemInfo) {
+				console.log("onContextMenu", event, itemInfo);
 			},
 			onListDblClick(event, itemInfo) {
 				console.log("onListDblClick", event, itemInfo);
