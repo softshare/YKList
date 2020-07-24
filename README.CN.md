@@ -179,3 +179,17 @@ onSelectedChange(valNew) {
 },
 
 ```
+
+
++ onContextMenu(event, itemInfo)
+右键进行点击时
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onContextMenu="onContextMenu"
+>
+....
+onContextMenu(event, itemInfo) {
+    console.log("onContextMenu", event, itemInfo);
+},
+
+```

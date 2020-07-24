@@ -178,3 +178,16 @@ onSelectedChange(valNew) {
 },
 
 ```
+
++ onContextMenu(event, itemInfo)
+Fires when mouse right button click the list item
+```
+<YKList ref="ykList1" :settings="settings" :listData="listData" :height="height"
+              @onContextMenu="onContextMenu"
+>
+....
+onContextMenu(event, itemInfo) {
+    console.log("onContextMenu", event, itemInfo);
+},
+
+```
