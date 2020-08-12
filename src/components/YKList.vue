@@ -261,7 +261,7 @@ https://github.com/softshare/YKList
 					this.total_rows = Math.ceil(this.list.length / this.total_cols);
 					if (this.dom.scrollTop > 1) this.dom.scrollTop = this.dom.scrollTop - 1; //fix the wrong scroll offset
 				}
-				HelperDragSelect.Helper.init(this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
+				HelperDragSelect.Helper.resetEvents(this, this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
 			},
 			settingsCheck() {
 				if (this.settings.horizontal == undefined) this.settings.horizontal = false;
@@ -307,6 +307,9 @@ https://github.com/softshare/YKList
 					return;
 				}
 
+				if(e.ctrlKey || e.altKey || e.shiftKey) return; //如果有其他键，不能进行按键导航
+
+        //最后再进行字符导航
 				if (
 						( e.keyCode >= 48 && //0
 								e.keyCode <= 57 ) || //9
@@ -340,12 +343,12 @@ https://github.com/softshare/YKList
 						this.clearHotItem();
 					}
 					let eventName = event.button == 0 ? "onListClick" : "onContextMenu";
-					if(event.button == 2 && this.list_checked.length<=1 && itemInfo!=null){ //change the selected item
-            this.unCheckAll();
-            this.clearHotItem();
-            this.checkSet(itemInfo.index, true);
-            this.setHotItem(itemInfo.index);
-          }
+					if (event.button == 2 && this.list_checked.length <= 1 && itemInfo != null) { //change the selected item
+						this.unCheckAll();
+						this.clearHotItem();
+						this.checkSet(itemInfo.index, true);
+						this.setHotItem(itemInfo.index);
+					}
 					this.$emit(eventName, event, itemInfo);
 				}
 			},
@@ -359,9 +362,6 @@ https://github.com/softshare/YKList
 				//     this.settings.onListDblClick(event, itemInfo);
 				// }
 				this.$emit("onListDblClick", event, itemInfo);
-			},
-			onLayoutResized() {
-				this.refreshLayout();
 			},
 			on_dragSelect_mouseDown(event) {
 				if (event.shiftKey || event.ctrlKey) return; //如果此时用户按下了shift或者ctrl，可能是在进行鼠标选择，不能处理拖拽
@@ -520,6 +520,9 @@ https://github.com/softshare/YKList
 					this.setItemVisible(index);
 				}
 			},
+			setHotItemByChar(key){
+				HelperCtlListView.Helper.hotItem_setByChar(this, key);
+      },
 			getHotItem() {
 				return this.itemHot;
 			},
@@ -676,6 +679,13 @@ https://github.com/softshare/YKList
 			},
 			getListDOM() {
 				return this.dom;
+			},
+			getScrollInfo() {
+				return {
+					horizontal: this.horizontal,
+					offset: this.horizontal ? this.dom.scrollLeft : this.dom.scrollTop,
+					max: this.scrollMaxSize
+				}
 			}
 		},
 		watch: {
@@ -701,11 +711,31 @@ https://github.com/softshare/YKList
 			} else {
 				this.setListData(this.listData);
 			}
-			HelperDragSelect.Helper.init(this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
+			HelperDragSelect.Helper.resetEvents(this, this.on_dragSelect_mouseDown, this.on_dragSelect_mouseMove, this.on_dragSelect_mouseUp);
 			setInterval(this.tm_autoScroll, 333);
-			this.dom.oncontextmenu = function() {
+			this.dom.oncontextmenu = function () {
 				return false;
 			};
+
+			//绑定一个鼠标滚轮滚动事件
+			let YKList = this;
+			YKList.dom.onmousewheel = function (event) {
+				let scrollInfo = YKList.getScrollInfo();
+				//event.wheelDelat 可以获取滚轮滚动方向 上滚为正值
+				if (event.wheelDelta > 0) {
+					if (scrollInfo.horizontal)
+						YKList.dom.scrollLeft = YKList.dom.scrollLeft - YKList.listWidth * 0.5 ;
+					else
+						YKList.dom.scrollTop = YKList.dom.scrollTop - YKList.listHeight* 0.5 ;
+				} else {
+					if (scrollInfo.horizontal)
+						YKList.dom.scrollLeft = YKList.dom.scrollLeft + YKList.listWidth* 0.5 ;
+					else
+						YKList.dom.scrollTop = YKList.dom.scrollTop + YKList.listHeight* 0.5 ;
+				}
+				//取消浏览器默认滚动条，不然会跟着事件以前滚动
+				return false;
+			}
 		},
 	}
 </script>

@@ -277,7 +277,7 @@ https://github.com/softshare/YKList
 				YKList.list_checked = YKList.list_checked.sort((a, b) => a - b); //排序
 			},
 			hotItem_setByKey(YKList, keyCode, isShift) {
-				if (YKList.list.length < 0) return; //确定有数据
+				if (YKList.list.length < 0 ) return; //确定有数据
 				if (YKList.itemHot == -1) {
 					YKList.checkSet(0, true);
 					YKList.setHotItem(0);
@@ -316,6 +316,7 @@ https://github.com/softshare/YKList
 			hotItem_setByChar(YKList, key) { //change the hot item by key press of char
 				key = key.toLowerCase();
 				var iFirstIndex = YKList.list_charSort.indexOf(key); //当前key在文件首字母索引中的位置
+
 				if (iFirstIndex < 0) return; //根本就不存在，直接返回
 				var iStartIndex = 0;
 				if (YKList.list_checked.length > 0) {

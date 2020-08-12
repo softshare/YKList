@@ -20,7 +20,8 @@ https://github.com/softshare/YKList
 				width: undefined,
 				height: undefined
 			}, //ListView容器的坐标偏移量信息
-			init(onMouseDown, onMouseMove, onMouseUp) {
+			resetEvents(YKList, onMouseDown, onMouseMove, onMouseUp) {
+				let parent = YKList.dom;
 				document.onmousedown = onMouseDown;
 				document.onmousemove = onMouseMove;
 				document.onmouseup = onMouseUp;

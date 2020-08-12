@@ -44,7 +44,7 @@
 				settings: {
 					id: "ykList1",
 					keyNaviBy: "name",
-					testingData: 100,
+					testingData: 200,
 					itemSize: {
 						width: 128,
 						height: 64
@@ -89,6 +89,7 @@
 			},
 			onListClick(event, itemInfo) {
 				console.log("onListClick", event, itemInfo);
+				console.log("onListClick", this.$refs.ykList1.getScrollInfo());
 			},
 			onContextMenu(event, itemInfo) {
 				console.log("onContextMenu", event, itemInfo);
