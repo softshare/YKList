@@ -25,6 +25,7 @@
       <button @click="sortData" style="width: 100px; height:40px;">sortData</button>
       <button @click="getItems" style="width: 100px; height:40px;">getItems</button>
       <button @click="getItem" style="width: 100px; height:40px;">getItem</button>
+      <button @click="updateItemData" style="width: 100px; height:40px;">updateItemData</button>
     </div>
   </div>
 </template>
@@ -81,6 +82,9 @@
 			},
 			getItem() {
 				console.log(this.$refs.ykList1.getItemData(this.$refs.ykList1.getHotItem()));
+			},
+			updateItemData() {
+				this.$refs.ykList1.updateItemData(0, "name", "'newName'");
 			},
 			onItemUnderMouseChanged(itemInfo) {
 				// console.log("onItemUnderMouseChanged, index:", itemInfo == null ? null : itemInfo.index, );

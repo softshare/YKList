@@ -2,8 +2,6 @@
 Copyright(c) 2020
 Author : Yang Ke
 E-mail : softshare@163.com
-
-If YKList is useful to you, please star me at github:
 https://github.com/softshare/YKList
 **/
 <template>
@@ -636,6 +634,10 @@ https://github.com/softshare/YKList
 				}
 				this.refreshLayout();
 			},
+      updateItemData(index, prop, newVal){
+				let item = this.list[index];
+				eval("item."+prop+"="+newVal);
+      },
 			setHorizontal(val) {
 				this.settings.horizontal = val;
 				this.refreshLayout();
@@ -686,7 +688,13 @@ https://github.com/softshare/YKList
 					offset: this.horizontal ? this.dom.scrollLeft : this.dom.scrollTop,
 					max: this.scrollMaxSize
 				}
-			}
+			},
+      setScrollOffset(offset){
+				if(this.horizontal)
+					this.dom.scrollLeft = offset;
+				else
+					this.dom.scrollTop = offset;
+      }
 		},
 		watch: {
 			settings: function (valNew) {
@@ -721,20 +729,10 @@ https://github.com/softshare/YKList
 			let YKList = this;
 			YKList.dom.onmousewheel = function (event) {
 				let scrollInfo = YKList.getScrollInfo();
-				//event.wheelDelat 可以获取滚轮滚动方向 上滚为正值
-				if (event.wheelDelta > 0) {
-					if (scrollInfo.horizontal)
-						YKList.dom.scrollLeft = YKList.dom.scrollLeft - YKList.listWidth * 0.5 ;
-					else
-						YKList.dom.scrollTop = YKList.dom.scrollTop - YKList.listHeight* 0.5 ;
-				} else {
-					if (scrollInfo.horizontal)
-						YKList.dom.scrollLeft = YKList.dom.scrollLeft + YKList.listWidth* 0.5 ;
-					else
-						YKList.dom.scrollTop = YKList.dom.scrollTop + YKList.listHeight* 0.5 ;
-				}
-				//取消浏览器默认滚动条，不然会跟着事件以前滚动
-				return false;
+        let offset = event.wheelDelta > 0 ? -1 : 1; //event.wheelDelat 可以获取滚轮滚动方向 上滚为正值
+				offset =scrollInfo.offset +  YKList.listWidth * 0.5 * offset;
+				YKList.setScrollOffset(offset);
+				return false; //取消浏览器默认滚动条，不然会跟着事件以前滚动
 			}
 		},
 	}

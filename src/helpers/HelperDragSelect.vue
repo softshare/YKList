@@ -2,8 +2,6 @@
 Copyright(c) 2020
 Author : Yang Ke
 E-mail : softshare@163.com
-
-If YKList is useful to you, please star me at github:
 https://github.com/softshare/YKList
 **/
 <script>
