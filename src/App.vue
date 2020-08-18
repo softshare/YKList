@@ -47,13 +47,19 @@
 					keyNaviBy: "name",
 					testingData: 200,
 					itemSize: {
-						width: 128,
-						height: 64
+						width: 256,
+						height: 128
 					},
-					checkBeforeDragSelection: function (event, itemInfo) {
+					checkBeforeDragSelection: function (event, YKList,itemInfo) {
+						//console.log(itemInfo);
+            let vItems = YKList.getVisibleItems();
+            let vTopOffset = YKList.getTopItemOffset();
+						console.log(vItems);
+						console.log(vTopOffset);
+
 						return true;
 					},
-					horizontal: true
+					horizontal: false
 				}
 			}
 		},
@@ -107,7 +113,8 @@
 			onScrollStopped(scrollPos) {
 				console.log("onScrollStopped", scrollPos);
 				console.log("getVisibleItems()", this.$refs.ykList1.getVisibleItems());
-			}
+			},
+
 		},
 		computed: {
 			itemInfoOfMouse() {

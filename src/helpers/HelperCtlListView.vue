@@ -41,8 +41,12 @@ https://github.com/softshare/YKList
 					if (index >= YKList.list.length || index < 0) return null;
 
 				}
+
+				let vItems = YKList.getVisibleItems();
+				let vTopOffset = YKList.getTopItemOffset();
+
 				return {
-					index, xIndex, yIndex, mouseX, mouseY
+					index, xIndex, yIndex, mouseX, mouseY, mouseInListViewX, mouseInListViewY
 				}
 			},
 			getPageCoord(YKList, itemInfo) {

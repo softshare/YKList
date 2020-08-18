@@ -114,7 +114,7 @@ https://github.com/softshare/YKList
 							},
 						},
 						sortData: 0, //1 : ascend, 2: descend
-						checkBeforeDragSelection: function (event, itemInfo) {
+						checkBeforeDragSelection: function (event, YKList, itemInfo) {
 							return true;
 						},
 						onListClick: function (event, itemInfo) {
@@ -368,7 +368,7 @@ https://github.com/softshare/YKList
 						event.pageX,
 						event.pageY
 				);
-				if (this.settings.checkBeforeDragSelection != undefined && !this.settings.checkBeforeDragSelection(event, itemAtMouse)) return;
+				if (this.settings.checkBeforeDragSelection != undefined && !this.settings.checkBeforeDragSelection(event, this , itemAtMouse)) return;
 				HelperDragSelect.Helper.doMouseDown(event, this);
 			},
 			on_dragSelect_mouseMove(event) {
@@ -694,6 +694,9 @@ https://github.com/softshare/YKList
 					this.dom.scrollLeft = offset;
 				else
 					this.dom.scrollTop = offset;
+      },
+      getTopItemOffset(){
+				return HelperCtlListView.Helper.getTopOffset(this);
       }
 		},
 		watch: {
